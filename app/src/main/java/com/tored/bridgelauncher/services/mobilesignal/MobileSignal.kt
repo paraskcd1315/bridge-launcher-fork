@@ -8,7 +8,7 @@ import androidx.core.content.ContextCompat
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-class MobileSignal(context: Context) {
+class MobileSignal(private val context: Context) {
     private val _mobileSignalStrength = MutableStateFlow(-120)
     val mobileSignalStrength = _mobileSignalStrength.asStateFlow()
 
@@ -18,7 +18,7 @@ class MobileSignal(context: Context) {
     private val _mobileSignalLevel = MutableStateFlow(0)
     val mobileSignalLevel = _mobileSignalLevel.asStateFlow()
 
-    init {
+    fun startup() {
         val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
         var signalStrength = -120
         try {

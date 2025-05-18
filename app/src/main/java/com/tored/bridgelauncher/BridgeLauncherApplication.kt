@@ -88,14 +88,18 @@ class BridgeLauncherApplication : Application()
             _lifecycleEventsHolder = lifecycleEventsHolder,
             _apps = installedAppsHolder,
             _systemUIMode = systemUIModeHolder,
-            _batteryInfo = batteryInfo
+            _batteryInfo = batteryInfo,
+            _mobileSignal = mobileSignal,
+            _wifiSignal = wifiSignal
         )
 
         val jsToBridgeAPI = JSToBridgeAPI(
             _app = this,
             _windowInsetsHolder = windowInsetsHolder,
             _displayShapeHolder = displayShapeHolder,
-            _batteryInfo = batteryInfo
+            _batteryInfo = batteryInfo,
+            _wifiSignal = wifiSignal,
+            _mobileSignal = mobileSignal
         )
 
         val bridgeServer = BridgeServer(
@@ -157,6 +161,9 @@ class BridgeLauncherApplication : Application()
             BridgeLauncherBroadcastReceiver.intentFilter,
             ContextCompat.RECEIVER_EXPORTED,
         )
+        
+        services.mobileSignalServices.startup()
+        services.wifiSignalService.startup()
         services.batteryStatusService.startup()
         services.iconPackCache.startup()
         services.installedIconPacksHolder.startup()

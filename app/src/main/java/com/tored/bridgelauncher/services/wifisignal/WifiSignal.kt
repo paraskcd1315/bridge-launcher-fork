@@ -12,7 +12,7 @@ import androidx.annotation.RequiresApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-class WifiSignal(context: Context) {
+class WifiSignal(private val context: Context) {
     private val _wifiSignalStrength = MutableStateFlow(-100)
     val wifiSignalStrength = _wifiSignalStrength.asStateFlow()
 
@@ -53,14 +53,13 @@ class WifiSignal(context: Context) {
         }
     }
 
-    init {
+    fun startup() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val request = NetworkRequest.Builder()
                 .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
                 .build()
             connectivityManager.registerNetworkCallback(request, networkCallback)
         } else {
-            // Manejo para versiones anteriores a Android 12
             val wifiManager =
                 context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
             val wifiInfo = wifiManager.connectionInfo

@@ -59,6 +59,8 @@ class BridgeToJSAPI(
     private val _systemUIMode: SystemUIModeHolder,
     private val _lifecycleEventsHolder: LifecycleEventsHolder,
     private val _batteryInfo: BatteryInfo,
+    private val _wifiSignal: WifiSignal,
+    private val _mobileSignal: MobileSignal
 )
 {
     private val _scope = CoroutineScope(Dispatchers.Main)
@@ -154,15 +156,13 @@ class BridgeToJSAPI(
         onCollect(_batteryInfo.batteryLevel) { BatteryLevelChangedEvent(it) }
         onCollect(_batteryInfo.isCharging) { BatteryIsChargingEvent(it) }
 
-        val wifiSignal = WifiSignal(_app)
-        onCollect(wifiSignal.wifiSignalStrength) { WifiStrengthEvent(it) }
-        onCollect(wifiSignal.ssid) { WifiSSIDEvent(it) }
-        onCollect(wifiSignal.wifiSignalLevel) { WifiSignalEvent(it) }
+        onCollect(_wifiSignal.wifiSignalStrength) { WifiStrengthEvent(it) }
+        onCollect(_wifiSignal.ssid) { WifiSSIDEvent(it) }
+        onCollect(_wifiSignal.wifiSignalLevel) { WifiSignalEvent(it) }
 
-        val mobileSignal = MobileSignal(_app)
-        onCollect(mobileSignal.mobileSignalStrength) { MobileStrengthEvent(it) }
-        onCollect(mobileSignal.networkType) { MobileNetworkTypeEvent(it) }
-        onCollect(mobileSignal.mobileSignalLevel) { MobileSignalEvent(it) }
+        onCollect(_mobileSignal.mobileSignalStrength) { MobileStrengthEvent(it) }
+        onCollect(_mobileSignal.networkType) { MobileNetworkTypeEvent(it) }
+        onCollect(_mobileSignal.mobileSignalLevel) { MobileSignalEvent(it) }
     }
 
     private fun <T> CoroutineScope.onCollect(flow: Flow<T>, newValueToEvent: (newValue: T) -> BridgeEventModel?)

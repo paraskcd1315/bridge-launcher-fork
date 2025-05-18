@@ -69,7 +69,9 @@ class JSToBridgeAPI(
     private val _app: BridgeLauncherApplication,
     private val _windowInsetsHolder: WindowInsetsHolder,
     private val _displayShapeHolder: DisplayShapeHolder,
-    private val _batteryInfo: BatteryInfo
+    private val _batteryInfo: BatteryInfo,
+    private val _mobileSignal: MobileSignal,
+    private val _wifiSignal: WifiSignal
 )
 {
     private val _scope = CoroutineScope(Dispatchers.Main)
@@ -713,32 +715,32 @@ class JSToBridgeAPI(
 
     @JavascriptInterface
     fun getWifiSignalStrength(): String {
-        return Json.encodeToString(mapOf("wifiStrength" to WifiSignal(_app).wifiSignalStrength.value))
+        return Json.encodeToString(mapOf("wifiStrength" to _wifiSignal.wifiSignalStrength.value))
     }
 
     @JavascriptInterface
     fun getWifiSignalLevel(): String {
-        return Json.encodeToString(mapOf("wifiSignalLevel" to WifiSignal(_app).wifiSignalLevel.value))
+        return Json.encodeToString(mapOf("wifiSignalLevel" to _wifiSignal.wifiSignalLevel.value))
     }
 
     @JavascriptInterface
     fun getWifiSSID(): String {
-        return Json.encodeToString(mapOf("wifiSSID" to WifiSignal(_app).ssid.value))
+        return Json.encodeToString(mapOf("wifiSSID" to _wifiSignal.ssid.value))
     }
 
     @JavascriptInterface
     fun getMobileSignalStrength(): String {
-        return Json.encodeToString(mapOf("mobileStrength" to MobileSignal(_app).mobileSignalStrength.value))
+        return Json.encodeToString(mapOf("mobileStrength" to _mobileSignal.mobileSignalStrength.value))
     }
 
     @JavascriptInterface
     fun getNetworkType(): String {
-        return Json.encodeToString(mapOf("mobileDataNetworkType" to MobileSignal(_app).networkType.value))
+        return Json.encodeToString(mapOf("mobileDataNetworkType" to _mobileSignal.networkType.value))
     }
 
     @JavascriptInterface
     fun getMobileSignalLevel(): String {
-        return Json.encodeToString(mapOf("mobileSignalLevel" to MobileSignal(_app).mobileSignalLevel.value))
+        return Json.encodeToString(mapOf("mobileSignalLevel" to _mobileSignal.mobileSignalLevel.value))
     }
 
 
