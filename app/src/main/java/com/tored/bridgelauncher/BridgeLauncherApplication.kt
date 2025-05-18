@@ -161,7 +161,7 @@ class BridgeLauncherApplication : Application()
             BridgeLauncherBroadcastReceiver.intentFilter,
             ContextCompat.RECEIVER_EXPORTED,
         )
-        
+
         services.mobileSignalServices.startup()
         services.wifiSignalService.startup()
         services.batteryStatusService.startup()
