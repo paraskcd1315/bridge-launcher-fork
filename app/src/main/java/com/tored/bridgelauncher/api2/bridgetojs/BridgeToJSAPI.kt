@@ -6,9 +6,14 @@ import android.webkit.WebView
 import com.tored.bridgelauncher.api2.bridgetojs.events.apps.AppChangedEvent
 import com.tored.bridgelauncher.api2.bridgetojs.events.apps.AppInstalledEvent
 import com.tored.bridgelauncher.api2.bridgetojs.events.apps.AppRemovedEvent
+import com.tored.bridgelauncher.api2.bridgetojs.events.battery.BatteryIsChargingEvent
+import com.tored.bridgelauncher.api2.bridgetojs.events.battery.BatteryLevelChangedEvent
 import com.tored.bridgelauncher.api2.bridgetojs.events.lifecycle.AfterResumeEvent
 import com.tored.bridgelauncher.api2.bridgetojs.events.lifecycle.BeforePauseEvent
 import com.tored.bridgelauncher.api2.bridgetojs.events.lifecycle.NewIntentEvent
+import com.tored.bridgelauncher.api2.bridgetojs.events.mobile.MobileNetworkTypeEvent
+import com.tored.bridgelauncher.api2.bridgetojs.events.mobile.MobileSignalEvent
+import com.tored.bridgelauncher.api2.bridgetojs.events.mobile.MobileStrengthEvent
 import com.tored.bridgelauncher.api2.bridgetojs.events.perms.CanLockScreenChangedEvent
 import com.tored.bridgelauncher.api2.bridgetojs.events.perms.CanRequestSystemNightModeChangedEvent
 import com.tored.bridgelauncher.api2.bridgetojs.events.settings.BridgeButtonVisibilityChangedEvent
@@ -18,6 +23,9 @@ import com.tored.bridgelauncher.api2.bridgetojs.events.settings.NavigationBarApp
 import com.tored.bridgelauncher.api2.bridgetojs.events.settings.OverscrollEffectsChangedEvent
 import com.tored.bridgelauncher.api2.bridgetojs.events.settings.StatusBarAppearanceChangedEvent
 import com.tored.bridgelauncher.api2.bridgetojs.events.systemuimode.SystemNightModeChangedEvent
+import com.tored.bridgelauncher.api2.bridgetojs.events.wifi.WifiSSIDEvent
+import com.tored.bridgelauncher.api2.bridgetojs.events.wifi.WifiSignalEvent
+import com.tored.bridgelauncher.api2.bridgetojs.events.wifi.WifiStrengthEvent
 import com.tored.bridgelauncher.api2.bridgetojs.events.windowinsets.WindowInsetsChangedEvent
 import com.tored.bridgelauncher.api2.shared.BridgeButtonVisibilityStringOptions
 import com.tored.bridgelauncher.api2.shared.BridgeThemeStringOptions
@@ -25,13 +33,16 @@ import com.tored.bridgelauncher.api2.shared.OverscrollEffectsStringOptions
 import com.tored.bridgelauncher.api2.shared.SystemBarAppearanceStringOptions
 import com.tored.bridgelauncher.services.apps.InstalledAppListChangeEvent
 import com.tored.bridgelauncher.services.apps.InstalledAppsHolder
+import com.tored.bridgelauncher.services.battery.BatteryInfo
 import com.tored.bridgelauncher.services.lifecycleevents.LifecycleEventsHolder
+import com.tored.bridgelauncher.services.mobilesignal.MobileSignal
 import com.tored.bridgelauncher.services.perms.PermsHolder
 import com.tored.bridgelauncher.services.settings2.BridgeSetting
 import com.tored.bridgelauncher.services.settings2.BridgeSettings
 import com.tored.bridgelauncher.services.settings2.settingsDataStore
 import com.tored.bridgelauncher.services.settings2.useBridgeSettingStateFlow
 import com.tored.bridgelauncher.services.uimode.SystemUIModeHolder
+import com.tored.bridgelauncher.services.wifisignal.WifiSignal
 import com.tored.bridgelauncher.services.windowinsetsholder.WindowInsetsHolder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -47,6 +58,7 @@ class BridgeToJSAPI(
     private val _insets: WindowInsetsHolder,
     private val _systemUIMode: SystemUIModeHolder,
     private val _lifecycleEventsHolder: LifecycleEventsHolder,
+    private val _batteryInfo: BatteryInfo,
 )
 {
     private val _scope = CoroutineScope(Dispatchers.Main)
@@ -137,6 +149,20 @@ class BridgeToJSAPI(
             onCollect(homeScreenNewIntent) { NewIntentEvent() }
             onCollect(homeScreenAfterResume) { AfterResumeEvent() }
         }
+
+        // Integración de nuevos servicios: BatteryInfo, WifiSignal, MobileSignal
+        onCollect(_batteryInfo.batteryLevel) { BatteryLevelChangedEvent(it) }
+        onCollect(_batteryInfo.isCharging) { BatteryIsChargingEvent(it) }
+
+        val wifiSignal = WifiSignal(_app)
+        onCollect(wifiSignal.wifiSignalStrength) { WifiStrengthEvent(it) }
+        onCollect(wifiSignal.ssid) { WifiSSIDEvent(it) }
+        onCollect(wifiSignal.wifiSignalLevel) { WifiSignalEvent(it) }
+
+        val mobileSignal = MobileSignal(_app)
+        onCollect(mobileSignal.mobileSignalStrength) { MobileStrengthEvent(it) }
+        onCollect(mobileSignal.networkType) { MobileNetworkTypeEvent(it) }
+        onCollect(mobileSignal.mobileSignalLevel) { MobileSignalEvent(it) }
     }
 
     private fun <T> CoroutineScope.onCollect(flow: Flow<T>, newValueToEvent: (newValue: T) -> BridgeEventModel?)

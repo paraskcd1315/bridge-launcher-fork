@@ -10,18 +10,21 @@ import com.tored.bridgelauncher.api2.jstobridge.JSToBridgeAPI
 import com.tored.bridgelauncher.api2.server.BridgeServer
 import com.tored.bridgelauncher.services.BridgeServices
 import com.tored.bridgelauncher.services.apps.InstalledAppsHolder
+import com.tored.bridgelauncher.services.battery.BatteryInfo
 import com.tored.bridgelauncher.services.devconsole.DevConsoleMessagesHolder
 import com.tored.bridgelauncher.services.displayshape.DisplayShapeHolder
 import com.tored.bridgelauncher.services.iconcache.IconCache
 import com.tored.bridgelauncher.services.iconpackcache.IconPackCache
 import com.tored.bridgelauncher.services.iconpackcache.InstalledIconPacksHolder
 import com.tored.bridgelauncher.services.lifecycleevents.LifecycleEventsHolder
+import com.tored.bridgelauncher.services.mobilesignal.MobileSignal
 import com.tored.bridgelauncher.services.mockexport.MockExporter
 import com.tored.bridgelauncher.services.perms.PermsHolder
 import com.tored.bridgelauncher.services.system.BridgeButtonQSTileService
 import com.tored.bridgelauncher.services.system.BridgeLauncherBroadcastReceiver
 import com.tored.bridgelauncher.services.system.BridgeLauncherDeviceAdminReceiver
 import com.tored.bridgelauncher.services.uimode.SystemUIModeHolder
+import com.tored.bridgelauncher.services.wifisignal.WifiSignal
 import com.tored.bridgelauncher.services.windowinsetsholder.WindowInsetsHolder
 
 private const val TAG = "Application"
@@ -54,6 +57,10 @@ class BridgeLauncherApplication : Application()
         // constructing the services ahead of time helps with manually resolving the dependency graph at compile time
         // yeah this probably could be done by some DI library but I'd rather explicitly know what is happening
 
+        val batteryInfo = BatteryInfo(this)
+        val mobileSignal = MobileSignal(this)
+        val wifiSignal = WifiSignal(this)
+
         val pm = packageManager
         val uiModeManager = getSystemService(UI_MODE_SERVICE) as UiModeManager
 
@@ -81,18 +88,23 @@ class BridgeLauncherApplication : Application()
             _lifecycleEventsHolder = lifecycleEventsHolder,
             _apps = installedAppsHolder,
             _systemUIMode = systemUIModeHolder,
+            _batteryInfo = batteryInfo
         )
 
         val jsToBridgeAPI = JSToBridgeAPI(
             _app = this,
             _windowInsetsHolder = windowInsetsHolder,
             _displayShapeHolder = displayShapeHolder,
+            _batteryInfo = batteryInfo
         )
 
         val bridgeServer = BridgeServer(
             this,
             installedAppsHolder,
             _iconPacks = installedIconPacksHolder,
+            _batteryInfo = batteryInfo,
+            _mobileSignal = mobileSignal,
+            _wifiSignal = wifiSignal
         )
 
         val consoleMessagesHolder = DevConsoleMessagesHolder()
@@ -130,6 +142,10 @@ class BridgeLauncherApplication : Application()
             bridgeServer = bridgeServer,
             bridgeToJSInterface = bridgeToJSAPI,
             jsToBridgeInterface = jsToBridgeAPI,
+
+            wifiSignalService = wifiSignal,
+            mobileSignalServices = mobileSignal,
+            batteryStatusService = batteryInfo
         )
     }
 
@@ -141,7 +157,7 @@ class BridgeLauncherApplication : Application()
             BridgeLauncherBroadcastReceiver.intentFilter,
             ContextCompat.RECEIVER_EXPORTED,
         )
-
+        services.batteryStatusService.startup()
         services.iconPackCache.startup()
         services.installedIconPacksHolder.startup()
         services.iconCache.startup()

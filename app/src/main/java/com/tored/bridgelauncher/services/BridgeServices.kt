@@ -6,16 +6,19 @@ import com.tored.bridgelauncher.api2.bridgetojs.BridgeToJSAPI
 import com.tored.bridgelauncher.api2.jstobridge.JSToBridgeAPI
 import com.tored.bridgelauncher.api2.server.BridgeServer
 import com.tored.bridgelauncher.services.apps.InstalledAppsHolder
+import com.tored.bridgelauncher.services.battery.BatteryInfo
 import com.tored.bridgelauncher.services.devconsole.DevConsoleMessagesHolder
 import com.tored.bridgelauncher.services.displayshape.DisplayShapeHolder
 import com.tored.bridgelauncher.services.iconcache.IconCache
 import com.tored.bridgelauncher.services.iconpackcache.IconPackCache
 import com.tored.bridgelauncher.services.iconpackcache.InstalledIconPacksHolder
 import com.tored.bridgelauncher.services.lifecycleevents.LifecycleEventsHolder
+import com.tored.bridgelauncher.services.mobilesignal.MobileSignal
 import com.tored.bridgelauncher.services.mockexport.MockExporter
 import com.tored.bridgelauncher.services.perms.PermsHolder
 import com.tored.bridgelauncher.services.system.BridgeLauncherBroadcastReceiver
 import com.tored.bridgelauncher.services.uimode.SystemUIModeHolder
+import com.tored.bridgelauncher.services.wifisignal.WifiSignal
 import com.tored.bridgelauncher.services.windowinsetsholder.WindowInsetsHolder
 
 data class BridgeServices(
@@ -43,4 +46,9 @@ data class BridgeServices(
     val bridgeServer: BridgeServer,
     val bridgeToJSInterface: BridgeToJSAPI,
     val jsToBridgeInterface: JSToBridgeAPI,
+
+    //signals
+    val batteryStatusService: BatteryInfo,
+    val wifiSignalService: WifiSignal,
+    val mobileSignalServices: MobileSignal
 )

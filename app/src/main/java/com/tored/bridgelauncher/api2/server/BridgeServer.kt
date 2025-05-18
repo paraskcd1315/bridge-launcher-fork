@@ -6,16 +6,22 @@ import android.webkit.WebResourceResponse
 import com.tored.bridgelauncher.BridgeLauncherApplication
 import com.tored.bridgelauncher.api2.server.endpoints.AppIconsEndpoint
 import com.tored.bridgelauncher.api2.server.endpoints.AppsEndpoint
+import com.tored.bridgelauncher.api2.server.endpoints.BatteryInfoEndpoint
 import com.tored.bridgelauncher.api2.server.endpoints.BridgeFileServer
 import com.tored.bridgelauncher.api2.server.endpoints.IconPackContentEndpoint
 import com.tored.bridgelauncher.api2.server.endpoints.IconPacksEndpoint
+import com.tored.bridgelauncher.api2.server.endpoints.MobileSignalEndpoint
+import com.tored.bridgelauncher.api2.server.endpoints.WifiSignalEndpoint
 import com.tored.bridgelauncher.services.apps.InstalledAppsHolder
 import com.tored.bridgelauncher.services.apps.SerializableInstalledApp
+import com.tored.bridgelauncher.services.battery.BatteryInfo
 import com.tored.bridgelauncher.services.iconpackcache.InstalledIconPacksHolder
+import com.tored.bridgelauncher.services.mobilesignal.MobileSignal
 import com.tored.bridgelauncher.services.settings2.BridgeSetting
 import com.tored.bridgelauncher.services.settings2.BridgeSettings
 import com.tored.bridgelauncher.services.settings2.settingsDataStore
 import com.tored.bridgelauncher.services.settings2.useBridgeSettingStateFlow
+import com.tored.bridgelauncher.services.wifisignal.WifiSignal
 import com.tored.bridgelauncher.utils.URLWithQueryBuilder
 import com.tored.bridgelauncher.utils.q
 import kotlinx.coroutines.CoroutineScope
@@ -39,10 +45,34 @@ data class BridgeAPIEndpointAppsResponse(
     val apps: List<SerializableInstalledApp>,
 )
 
+@Serializable
+data class BridgeAPIEndpointBatteryResponse(
+    val level: Int,
+    val isCharging: Boolean
+)
+
+
+@Serializable
+data class BridgeAPIEndpointMobileSignalResponse(
+    val signalStrength: Int,
+    val networkType: String,
+    val signalLevel: Int
+)
+
+@Serializable
+data class BridgeAPIEndpointWifiSignalResponse(
+    val signalStrength: Int,
+    val ssid: String,
+    val signalLevel: Int
+)
+
 class BridgeServer(
     private val _app: BridgeLauncherApplication,
     private val _apps: InstalledAppsHolder,
     private val _iconPacks: InstalledIconPacksHolder,
+    private val _batteryInfo: BatteryInfo,
+    private val _mobileSignal: MobileSignal,
+    private val _wifiSignal: WifiSignal
 )
 {
     private val _scope = CoroutineScope(Dispatchers.Main) + SupervisorJob()
@@ -62,6 +92,9 @@ class BridgeServer(
         ENDPOINT_APP_ICONS to AppIconsEndpoint(_apps, _iconPacks),
         ENDPOINT_ICON_PACKS to IconPacksEndpoint(_iconPacks),
         ENDPOINT_ICON_PACK_CONTENT to IconPackContentEndpoint(_iconPacks),
+        ENDPOINT_BATTERY to BatteryInfoEndpoint(_batteryInfo),
+        ENDPOINT_MOBILE_SIGNAL to MobileSignalEndpoint(_mobileSignal),
+        ENDPOINT_WIFI_SIGNAL to WifiSignalEndpoint(_wifiSignal)
     )
 
     suspend fun handle(req: WebResourceRequest): WebResourceResponse?
@@ -112,5 +145,9 @@ class BridgeServer(
         const val ENDPOINT_APPS = "apps"
         const val ENDPOINT_APP_ICONS = "appicons"
         const val ENDPOINT_ICON_PACKS = "iconpacks"
+
+        const val ENDPOINT_BATTERY = "battery"
+        const val ENDPOINT_MOBILE_SIGNAL = "mobilesignal"
+        const val ENDPOINT_WIFI_SIGNAL = "wifisignal"
     }
 }

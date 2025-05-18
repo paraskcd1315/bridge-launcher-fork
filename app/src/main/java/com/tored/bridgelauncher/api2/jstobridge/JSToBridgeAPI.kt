@@ -29,7 +29,9 @@ import com.tored.bridgelauncher.api2.shared.BridgeThemeStringOptions
 import com.tored.bridgelauncher.api2.shared.OverscrollEffectsStringOptions
 import com.tored.bridgelauncher.api2.shared.SystemBarAppearanceStringOptions
 import com.tored.bridgelauncher.api2.shared.SystemNightModeStringOptions
+import com.tored.bridgelauncher.services.battery.BatteryInfo
 import com.tored.bridgelauncher.services.displayshape.DisplayShapeHolder
+import com.tored.bridgelauncher.services.mobilesignal.MobileSignal
 import com.tored.bridgelauncher.services.settings2.BridgeSetting
 import com.tored.bridgelauncher.services.settings2.BridgeSettings
 import com.tored.bridgelauncher.services.settings2.getIsBridgeAbleToLockTheScreen
@@ -37,6 +39,7 @@ import com.tored.bridgelauncher.services.settings2.setBridgeSetting
 import com.tored.bridgelauncher.services.settings2.settingsDataStore
 import com.tored.bridgelauncher.services.settings2.useBridgeSettingStateFlow
 import com.tored.bridgelauncher.services.system.BridgeLauncherAccessibilityService
+import com.tored.bridgelauncher.services.wifisignal.WifiSignal
 import com.tored.bridgelauncher.services.windowinsetsholder.WindowInsetsHolder
 import com.tored.bridgelauncher.services.windowinsetsholder.WindowInsetsOptions
 import com.tored.bridgelauncher.services.windowinsetsholder.WindowInsetsSnapshot
@@ -57,6 +60,7 @@ import com.tored.bridgelauncher.utils.toPx
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 private const val TAG = "JSToBridge"
@@ -65,6 +69,7 @@ class JSToBridgeAPI(
     private val _app: BridgeLauncherApplication,
     private val _windowInsetsHolder: WindowInsetsHolder,
     private val _displayShapeHolder: DisplayShapeHolder,
+    private val _batteryInfo: BatteryInfo
 )
 {
     private val _scope = CoroutineScope(Dispatchers.Main)
@@ -695,6 +700,47 @@ class JSToBridgeAPI(
 
     @JavascriptInterface
     fun getDisplayShapePath() = _displayShapeHolder.displayShapePath
+
+    @JavascriptInterface
+    fun getBatteryLevel(): String {
+        return Json.encodeToString(mapOf("batteryLevel" to _batteryInfo.batteryLevel.value))
+    }
+
+    @JavascriptInterface
+    fun getBatteryIsCharging(): String {
+        return Json.encodeToString(mapOf("batteryCharging" to _batteryInfo.isCharging.value))
+    }
+
+    @JavascriptInterface
+    fun getWifiSignalStrength(): String {
+        return Json.encodeToString(mapOf("wifiStrength" to WifiSignal(_app).wifiSignalStrength.value))
+    }
+
+    @JavascriptInterface
+    fun getWifiSignalLevel(): String {
+        return Json.encodeToString(mapOf("wifiSignalLevel" to WifiSignal(_app).wifiSignalLevel.value))
+    }
+
+    @JavascriptInterface
+    fun getWifiSSID(): String {
+        return Json.encodeToString(mapOf("wifiSSID" to WifiSignal(_app).ssid.value))
+    }
+
+    @JavascriptInterface
+    fun getMobileSignalStrength(): String {
+        return Json.encodeToString(mapOf("mobileStrength" to MobileSignal(_app).mobileSignalStrength.value))
+    }
+
+    @JavascriptInterface
+    fun getNetworkType(): String {
+        return Json.encodeToString(mapOf("mobileDataNetworkType" to MobileSignal(_app).networkType.value))
+    }
+
+    @JavascriptInterface
+    fun getMobileSignalLevel(): String {
+        return Json.encodeToString(mapOf("mobileSignalLevel" to MobileSignal(_app).mobileSignalLevel.value))
+    }
+
 
     // endregion
 

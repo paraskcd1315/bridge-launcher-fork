@@ -41,6 +41,14 @@ fun Context.checkStoragePerms(): Boolean
     }
 }
 
+fun Context.checkLocationPerm(): Boolean {
+    return ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+}
+
+fun Context.checkPhoneStatePerm(): Boolean {
+    return ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED
+}
+
 fun Context.showErrorToast(ex: Exception)
 {
     showErrorToast(ex.messageOrDefault())

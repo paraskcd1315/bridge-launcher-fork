@@ -7,6 +7,8 @@ import com.tored.bridgelauncher.services.settings2.settingsDataStore
 import com.tored.bridgelauncher.services.settings2.useBridgeSettingStateFlow
 import com.tored.bridgelauncher.utils.CurrentAndroidVersion
 import com.tored.bridgelauncher.utils.checkCanSetSystemNightMode
+import com.tored.bridgelauncher.utils.checkLocationPerm
+import com.tored.bridgelauncher.utils.checkPhoneStatePerm
 import com.tored.bridgelauncher.utils.checkStoragePerms
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -33,6 +35,16 @@ class PermsHolder(
     private val _isAccessibilityServiceEnabled = useBridgeSettingStateFlow(_context.settingsDataStore, _scope, BridgeSettings.isAccessibilityServiceEnabled)
     private val _isDeviceAdminEnabled = useBridgeSettingStateFlow(_context.settingsDataStore, _scope, BridgeSettings.isDeviceAdminEnabled)
     private val _allowProjectsToTurnScreenOff = useBridgeSettingStateFlow(_context.settingsDataStore, _scope, BridgeSettings.allowProjectsToTurnScreenOff)
+
+    private val _hasLocationPermState = MutableStateFlow(
+        _context.checkLocationPerm()
+    )
+    val hasLocationPermState = _hasLocationPermState.asStateFlow()
+
+    private val _hasPhoneStatePermState = MutableStateFlow(
+        _context.checkPhoneStatePerm()
+    )
+    val hasPhoneStatePermState = _hasPhoneStatePermState.asStateFlow()
 
     private fun _getCanProjectsLockScreen(acc: Boolean, adm: Boolean, allow: Boolean): Boolean
     {
