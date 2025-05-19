@@ -51,6 +51,13 @@ class WifiSignal(private val context: Context) {
                 }
             }
         }
+
+        override fun onLost(network: Network) {
+            super.onLost(network)
+            _wifiSignalStrength.value = -100
+            _wifiSignalLevel.value = 0
+            _ssid.value = ""
+        }
     }
 
     fun startup() {

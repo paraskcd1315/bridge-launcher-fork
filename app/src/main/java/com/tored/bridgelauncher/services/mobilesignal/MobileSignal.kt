@@ -3,6 +3,9 @@ package com.tored.bridgelauncher.services.mobilesignal
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.telephony.PhoneStateListener
+import android.telephony.ServiceState
+import android.telephony.SignalStrength
 import android.telephony.TelephonyManager
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,6 +20,49 @@ class MobileSignal(private val context: Context) {
 
     private val _mobileSignalLevel = MutableStateFlow(0)
     val mobileSignalLevel = _mobileSignalLevel.asStateFlow()
+
+    private val phoneStateListener = object : PhoneStateListener() {
+        override fun onSignalStrengthsChanged(signalStrength: SignalStrength?) {
+            super.onSignalStrengthsChanged(signalStrength)
+            signalStrength?.let {
+                val level = it.level * 20 - 100
+                _mobileSignalStrength.value = level
+                _mobileSignalLevel.value = when {
+                    level >= -70 -> 5
+                    level >= -85 -> 4
+                    level >= -100 -> 3
+                    level >= -110 -> 2
+                    level >= -120 -> 1
+                    else -> 0
+                }
+            }
+        }
+
+        override fun onDataConnectionStateChanged(state: Int, networkType: Int) {
+            super.onDataConnectionStateChanged(state, networkType)
+            val type = when (networkType) {
+                TelephonyManager.NETWORK_TYPE_GPRS,
+                TelephonyManager.NETWORK_TYPE_EDGE -> "2G"
+                TelephonyManager.NETWORK_TYPE_UMTS,
+                TelephonyManager.NETWORK_TYPE_HSDPA,
+                TelephonyManager.NETWORK_TYPE_HSUPA,
+                TelephonyManager.NETWORK_TYPE_HSPA -> "3G"
+                TelephonyManager.NETWORK_TYPE_LTE -> "4G"
+                TelephonyManager.NETWORK_TYPE_NR -> "5G"
+                else -> ""
+            }
+            _networkType.value = type
+        }
+
+        override fun onServiceStateChanged(serviceState: ServiceState?) {
+            super.onServiceStateChanged(serviceState)
+            if (serviceState?.state == ServiceState.STATE_POWER_OFF) {
+                _mobileSignalStrength.value = -120
+                _mobileSignalLevel.value = 0
+                _networkType.value = ""
+            }
+        }
+    }
 
     fun startup() {
         val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
@@ -72,8 +118,13 @@ class MobileSignal(private val context: Context) {
             TelephonyManager.NETWORK_TYPE_HSPA -> "3G"
             TelephonyManager.NETWORK_TYPE_LTE -> "4G"
             TelephonyManager.NETWORK_TYPE_NR -> "5G"
-            else -> "UNKNOWN"
+            else -> ""
         }
         _networkType.value = networkType
+
+        telephonyManager.listen(
+            phoneStateListener,
+            PhoneStateListener.LISTEN_SIGNAL_STRENGTHS or PhoneStateListener.LISTEN_DATA_CONNECTION_STATE or PhoneStateListener.LISTEN_SERVICE_STATE
+        )
     }
 }
