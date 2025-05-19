@@ -18,6 +18,7 @@ import com.tored.bridgelauncher.services.mockexport.MockExporter
 import com.tored.bridgelauncher.services.perms.PermsHolder
 import com.tored.bridgelauncher.services.system.BridgeLauncherBroadcastReceiver
 import com.tored.bridgelauncher.services.uimode.SystemUIModeHolder
+import com.tored.bridgelauncher.services.wallpaper.WallpaperInfo
 import com.tored.bridgelauncher.services.wifisignal.WifiSignal
 import com.tored.bridgelauncher.services.windowinsetsholder.WindowInsetsHolder
 
@@ -50,5 +51,8 @@ data class BridgeServices(
     //signals
     val batteryStatusService: BatteryInfo,
     val wifiSignalService: WifiSignal,
-    val mobileSignalServices: MobileSignal
+    val mobileSignalServices: MobileSignal,
+
+    // wallpaper
+    val wallpaperServices: WallpaperInfo
 )

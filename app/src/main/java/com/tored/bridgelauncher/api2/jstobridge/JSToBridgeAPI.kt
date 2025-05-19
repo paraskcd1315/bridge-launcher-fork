@@ -39,6 +39,7 @@ import com.tored.bridgelauncher.services.settings2.setBridgeSetting
 import com.tored.bridgelauncher.services.settings2.settingsDataStore
 import com.tored.bridgelauncher.services.settings2.useBridgeSettingStateFlow
 import com.tored.bridgelauncher.services.system.BridgeLauncherAccessibilityService
+import com.tored.bridgelauncher.services.wallpaper.WallpaperInfo
 import com.tored.bridgelauncher.services.wifisignal.WifiSignal
 import com.tored.bridgelauncher.services.windowinsetsholder.WindowInsetsHolder
 import com.tored.bridgelauncher.services.windowinsetsholder.WindowInsetsOptions
@@ -71,7 +72,8 @@ class JSToBridgeAPI(
     private val _displayShapeHolder: DisplayShapeHolder,
     private val _batteryInfo: BatteryInfo,
     private val _mobileSignal: MobileSignal,
-    private val _wifiSignal: WifiSignal
+    private val _wifiSignal: WifiSignal,
+    private val _wallpaperInfo: WallpaperInfo
 )
 {
     private val _scope = CoroutineScope(Dispatchers.Main)
@@ -703,6 +705,10 @@ class JSToBridgeAPI(
     @JavascriptInterface
     fun getDisplayShapePath() = _displayShapeHolder.displayShapePath
 
+    // endregion
+
+    // region statusbar
+
     @JavascriptInterface
     fun getBatteryLevel(): String {
         return Json.encodeToString(mapOf("batteryLevel" to _batteryInfo.batteryLevel.value))
@@ -743,6 +749,20 @@ class JSToBridgeAPI(
         return Json.encodeToString(mapOf("mobileSignalLevel" to _mobileSignal.mobileSignalLevel.value))
     }
 
+    // endregion
+
+    // region wallpaper
+
+    @JvmOverloads
+    @JavascriptInterface
+    fun requestWallpaperRefresh(showToastIfFailed: Boolean = true): Boolean {
+        return tryRunInHomescreenContext(showToastIfFailed) { _wallpaperInfo.refresh() }
+    }
+
+    @JavascriptInterface
+    fun getWallpaperBase64(): String {
+        return Json.encodeToString(mapOf("wallpaperBase64" to _wallpaperInfo.wallpaperBase64.value))
+    }
 
     // endregion
 

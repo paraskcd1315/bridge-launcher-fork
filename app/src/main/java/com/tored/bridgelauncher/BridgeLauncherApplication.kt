@@ -24,6 +24,7 @@ import com.tored.bridgelauncher.services.system.BridgeButtonQSTileService
 import com.tored.bridgelauncher.services.system.BridgeLauncherBroadcastReceiver
 import com.tored.bridgelauncher.services.system.BridgeLauncherDeviceAdminReceiver
 import com.tored.bridgelauncher.services.uimode.SystemUIModeHolder
+import com.tored.bridgelauncher.services.wallpaper.WallpaperInfo
 import com.tored.bridgelauncher.services.wifisignal.WifiSignal
 import com.tored.bridgelauncher.services.windowinsetsholder.WindowInsetsHolder
 
@@ -60,6 +61,7 @@ class BridgeLauncherApplication : Application()
         val batteryInfo = BatteryInfo(this)
         val mobileSignal = MobileSignal(this)
         val wifiSignal = WifiSignal(this)
+        val wallpaperInfo = WallpaperInfo(this)
 
         val pm = packageManager
         val uiModeManager = getSystemService(UI_MODE_SERVICE) as UiModeManager
@@ -99,7 +101,8 @@ class BridgeLauncherApplication : Application()
             _displayShapeHolder = displayShapeHolder,
             _batteryInfo = batteryInfo,
             _wifiSignal = wifiSignal,
-            _mobileSignal = mobileSignal
+            _mobileSignal = mobileSignal,
+            _wallpaperInfo = wallpaperInfo
         )
 
         val bridgeServer = BridgeServer(
@@ -108,7 +111,8 @@ class BridgeLauncherApplication : Application()
             _iconPacks = installedIconPacksHolder,
             _batteryInfo = batteryInfo,
             _mobileSignal = mobileSignal,
-            _wifiSignal = wifiSignal
+            _wifiSignal = wifiSignal,
+            _wallpaperInfo = wallpaperInfo
         )
 
         val consoleMessagesHolder = DevConsoleMessagesHolder()
@@ -149,7 +153,8 @@ class BridgeLauncherApplication : Application()
 
             wifiSignalService = wifiSignal,
             mobileSignalServices = mobileSignal,
-            batteryStatusService = batteryInfo
+            batteryStatusService = batteryInfo,
+            wallpaperServices = wallpaperInfo
         )
     }
 
@@ -162,6 +167,7 @@ class BridgeLauncherApplication : Application()
             ContextCompat.RECEIVER_EXPORTED,
         )
 
+        services.wallpaperServices.startup()
         services.mobileSignalServices.startup()
         services.wifiSignalService.startup()
         services.batteryStatusService.startup()

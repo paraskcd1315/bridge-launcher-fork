@@ -11,6 +11,7 @@ import com.tored.bridgelauncher.api2.server.endpoints.BridgeFileServer
 import com.tored.bridgelauncher.api2.server.endpoints.IconPackContentEndpoint
 import com.tored.bridgelauncher.api2.server.endpoints.IconPacksEndpoint
 import com.tored.bridgelauncher.api2.server.endpoints.MobileSignalEndpoint
+import com.tored.bridgelauncher.api2.server.endpoints.WallpaperInfoEndpoint
 import com.tored.bridgelauncher.api2.server.endpoints.WifiSignalEndpoint
 import com.tored.bridgelauncher.services.apps.InstalledAppsHolder
 import com.tored.bridgelauncher.services.apps.SerializableInstalledApp
@@ -21,6 +22,7 @@ import com.tored.bridgelauncher.services.settings2.BridgeSetting
 import com.tored.bridgelauncher.services.settings2.BridgeSettings
 import com.tored.bridgelauncher.services.settings2.settingsDataStore
 import com.tored.bridgelauncher.services.settings2.useBridgeSettingStateFlow
+import com.tored.bridgelauncher.services.wallpaper.WallpaperInfo
 import com.tored.bridgelauncher.services.wifisignal.WifiSignal
 import com.tored.bridgelauncher.utils.URLWithQueryBuilder
 import com.tored.bridgelauncher.utils.q
@@ -60,6 +62,11 @@ data class BridgeAPIEndpointMobileSignalResponse(
 )
 
 @Serializable
+data class BridgeAPIEndpointWallpaperInfoSignalResponse(
+    val wallpaperBase64: String
+)
+
+@Serializable
 data class BridgeAPIEndpointWifiSignalResponse(
     val signalStrength: Int,
     val ssid: String,
@@ -72,7 +79,8 @@ class BridgeServer(
     private val _iconPacks: InstalledIconPacksHolder,
     private val _batteryInfo: BatteryInfo,
     private val _mobileSignal: MobileSignal,
-    private val _wifiSignal: WifiSignal
+    private val _wifiSignal: WifiSignal,
+    private val _wallpaperInfo: WallpaperInfo
 )
 {
     private val _scope = CoroutineScope(Dispatchers.Main) + SupervisorJob()
@@ -94,7 +102,8 @@ class BridgeServer(
         ENDPOINT_ICON_PACK_CONTENT to IconPackContentEndpoint(_iconPacks),
         ENDPOINT_BATTERY to BatteryInfoEndpoint(_batteryInfo),
         ENDPOINT_MOBILE_SIGNAL to MobileSignalEndpoint(_mobileSignal),
-        ENDPOINT_WIFI_SIGNAL to WifiSignalEndpoint(_wifiSignal)
+        ENDPOINT_WIFI_SIGNAL to WifiSignalEndpoint(_wifiSignal),
+        ENDPOINT_WALLPAPER to WallpaperInfoEndpoint(_wallpaperInfo)
     )
 
     suspend fun handle(req: WebResourceRequest): WebResourceResponse?
@@ -149,5 +158,7 @@ class BridgeServer(
         const val ENDPOINT_BATTERY = "battery"
         const val ENDPOINT_MOBILE_SIGNAL = "mobilesignal"
         const val ENDPOINT_WIFI_SIGNAL = "wifisignal"
+
+        const val ENDPOINT_WALLPAPER = "wallpaper"
     }
 }
