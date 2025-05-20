@@ -6,6 +6,7 @@ import android.app.UiModeManager
 import android.content.ComponentName
 import android.content.pm.PackageManager
 import android.util.Log
+import androidx.annotation.RequiresPermission
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.tored.bridgelauncher.api2.bridgetojs.BridgeToJSAPI
@@ -158,6 +159,7 @@ class BridgeLauncherApplication : Application()
         )
     }
 
+    @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.READ_PHONE_STATE])
     private fun startup()
     {
         ContextCompat.registerReceiver(
@@ -173,20 +175,8 @@ class BridgeLauncherApplication : Application()
         services.iconCache.startup()
         services.installedAppsHolder.startup()
         services.bridgeToJSInterface.startup()
-
-        if (
-            ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED &&
-            ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
-            ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
-        ) {
-            services.mobileSignalServices.startup()
-            Log.d(TAG, "services.mobileSignalServices.startup(): OK")
-            services.wifiSignalService.startup()
-            Log.d(TAG, "services.wifiSignalService.startup(): OK")
-            services.wallpaperServices.startup()
-            Log.d(TAG, "services.wifiSignalService.startup(): OK")
-        } else {
-            Log.w(TAG, "Permissions missing — skipping signal services startup")
-        }
+        services.mobileSignalServices.startup()
+        services.wifiSignalService.startup()
+        services.wallpaperServices.startup()
     }
 }

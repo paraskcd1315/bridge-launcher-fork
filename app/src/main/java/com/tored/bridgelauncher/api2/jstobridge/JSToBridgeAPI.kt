@@ -745,6 +745,9 @@ class JSToBridgeAPI(
     @JavascriptInterface
     fun getSystemWallpaperURL() = getBridgeApiEndpointURL(BridgeServer.ENDPOINT_WALLPAPER)
 
+    @JavascriptInterface
+    fun getSystemWallpaperBase64() = _wallpaperInfo.wallpaperBase64.value
+
     // endregion
 
 
