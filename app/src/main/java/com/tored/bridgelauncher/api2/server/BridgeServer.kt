@@ -45,29 +45,8 @@ data class BridgeAPIEndpointAppsResponse(
 )
 
 @Serializable
-data class BridgeAPIEndpointBatteryResponse(
-    val level: Int,
-    val isCharging: Boolean
-)
-
-
-@Serializable
-data class BridgeAPIEndpointMobileSignalResponse(
-    val signalStrength: Int,
-    val networkType: String,
-    val signalLevel: Int
-)
-
-@Serializable
 data class BridgeAPIEndpointWallpaperInfoSignalResponse(
     val wallpaperBase64: String
-)
-
-@Serializable
-data class BridgeAPIEndpointWifiSignalResponse(
-    val signalStrength: Int,
-    val ssid: String,
-    val signalLevel: Int
 )
 
 class BridgeServer(
