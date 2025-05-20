@@ -1,9 +1,12 @@
 package com.tored.bridgelauncher
 
+import android.Manifest
 import android.app.Application
 import android.app.UiModeManager
 import android.content.ComponentName
+import android.content.pm.PackageManager
 import android.util.Log
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.tored.bridgelauncher.api2.bridgetojs.BridgeToJSAPI
 import com.tored.bridgelauncher.api2.jstobridge.JSToBridgeAPI
@@ -109,9 +112,6 @@ class BridgeLauncherApplication : Application()
             this,
             installedAppsHolder,
             _iconPacks = installedIconPacksHolder,
-            _batteryInfo = batteryInfo,
-            _mobileSignal = mobileSignal,
-            _wifiSignal = wifiSignal,
             _wallpaperInfo = wallpaperInfo
         )
 
@@ -167,14 +167,24 @@ class BridgeLauncherApplication : Application()
             ContextCompat.RECEIVER_EXPORTED,
         )
 
-        services.wallpaperServices.startup()
-        services.mobileSignalServices.startup()
-        services.wifiSignalService.startup()
         services.batteryStatusService.startup()
         services.iconPackCache.startup()
         services.installedIconPacksHolder.startup()
         services.iconCache.startup()
         services.installedAppsHolder.startup()
         services.bridgeToJSInterface.startup()
+        services.wallpaperServices.startup()
+
+        if (
+            ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED &&
+            ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        ) {
+            services.mobileSignalServices.startup()
+            Log.d(TAG, "services.mobileSignalServices.startup(): OK")
+            services.wifiSignalService.startup()
+            Log.d(TAG, "services.wifiSignalService.startup(): OK")
+        } else {
+            Log.w(TAG, "Permissions missing — skipping signal services startup")
+        }
     }
 }

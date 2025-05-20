@@ -34,21 +34,7 @@ class WifiSignal(private val context: Context) {
             super.onCapabilitiesChanged(network, networkCapabilities)
             val wifiInfo = networkCapabilities.transportInfo as? WifiInfo
             wifiInfo?.let {
-                val rssi = it.rssi
-                _wifiSignalStrength.value = rssi
-                _wifiSignalLevel.value = when {
-                    rssi >= -60 -> 4
-                    rssi >= -70 -> 3
-                    rssi >= -80 -> 2
-                    rssi >= -90 -> 1
-                    else -> 0
-                }
-                val rawSsid = it.ssid
-                _ssid.value = if (rawSsid != null && rawSsid != "<unknown ssid>" && rawSsid.isNotBlank()) {
-                    rawSsid.trim('"')
-                } else {
-                    ""
-                }
+                updateFromWifiInfo(it)
             }
         }
 
@@ -70,21 +56,29 @@ class WifiSignal(private val context: Context) {
             val wifiManager =
                 context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
             val wifiInfo = wifiManager.connectionInfo
-            val rssi = wifiInfo.rssi
-            _wifiSignalStrength.value = rssi
-            _wifiSignalLevel.value = when {
-                rssi >= -60 -> 4
-                rssi >= -70 -> 3
-                rssi >= -80 -> 2
-                rssi >= -90 -> 1
-                else -> 0
-            }
-            val rawSsid = wifiInfo.ssid
-            _ssid.value = if (rawSsid != null && rawSsid != "<unknown ssid>" && rawSsid.isNotBlank()) {
-                rawSsid.trim('"')
-            } else {
-                ""
-            }
+            updateFromWifiInfo(wifiInfo)
+        }
+    }
+
+    private fun updateFromWifiInfo(wifiInfo: WifiInfo) {
+        val rssi = wifiInfo.rssi
+        updateSignalStrengthLevels(rssi)
+        val rawSsid = wifiInfo.ssid
+        _ssid.value = if (rawSsid != null && rawSsid != "<unknown ssid>" && rawSsid.isNotBlank()) {
+            rawSsid.trim('"')
+        } else {
+            ""
+        }
+    }
+
+    private fun updateSignalStrengthLevels(signalStrength: Int) {
+        _wifiSignalStrength.value = signalStrength
+        _wifiSignalLevel.value = when {
+            signalStrength >= -60 -> 4
+            signalStrength >= -70 -> 3
+            signalStrength >= -80 -> 2
+            signalStrength >= -90 -> 1
+            else -> 0
         }
     }
 }
