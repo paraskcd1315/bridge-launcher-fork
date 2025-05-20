@@ -25,8 +25,8 @@ class WifiSignal(private val context: Context) {
     private val connectivityManager =
         context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
-    private val networkCallback = @RequiresApi(Build.VERSION_CODES.S)
-    object : ConnectivityManager.NetworkCallback(FLAG_INCLUDE_LOCATION_INFO) {
+    @RequiresApi(Build.VERSION_CODES.S)
+    private val networkCallback = object : ConnectivityManager.NetworkCallback() {
         override fun onCapabilitiesChanged(
             network: Network,
             networkCapabilities: NetworkCapabilities

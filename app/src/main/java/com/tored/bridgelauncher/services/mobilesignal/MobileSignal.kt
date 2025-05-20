@@ -23,6 +23,8 @@ class MobileSignal(private val context: Context) {
     private val _mobileSignalLevel = MutableStateFlow(0)
     val mobileSignalLevel = _mobileSignalLevel.asStateFlow()
 
+    private lateinit var telephonyManager: TelephonyManager
+
     private val phoneStateListener = object : PhoneStateListener() {
         override fun onSignalStrengthsChanged(signalStrength: SignalStrength?) {
             super.onSignalStrengthsChanged(signalStrength)
@@ -34,7 +36,7 @@ class MobileSignal(private val context: Context) {
 
         override fun onDataConnectionStateChanged(state: Int, networkType: Int) {
             super.onDataConnectionStateChanged(state, networkType)
-            _networkType.value = resolveNetworkType(networkType)
+            _networkType.value = resolveNetworkType(telephonyManager)
         }
 
         override fun onServiceStateChanged(serviceState: ServiceState?) {
@@ -48,7 +50,7 @@ class MobileSignal(private val context: Context) {
 
     @RequiresPermission(allOf = [Manifest.permission.READ_PHONE_STATE, Manifest.permission.ACCESS_FINE_LOCATION])
     fun startup() {
-        val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+        telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
         val signalStrength = getInitialMobileSignalStrength(telephonyManager)
 
         updateSignalStrengthLevels(signalStrength)

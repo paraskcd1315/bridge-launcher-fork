@@ -173,15 +173,17 @@ class BridgeLauncherApplication : Application()
         services.iconCache.startup()
         services.installedAppsHolder.startup()
         services.bridgeToJSInterface.startup()
-        services.wallpaperServices.startup()
 
         if (
             ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED &&
-            ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+            ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
+            ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
         ) {
             services.mobileSignalServices.startup()
             Log.d(TAG, "services.mobileSignalServices.startup(): OK")
             services.wifiSignalService.startup()
+            Log.d(TAG, "services.wifiSignalService.startup(): OK")
+            services.wallpaperServices.startup()
             Log.d(TAG, "services.wifiSignalService.startup(): OK")
         } else {
             Log.w(TAG, "Permissions missing — skipping signal services startup")
