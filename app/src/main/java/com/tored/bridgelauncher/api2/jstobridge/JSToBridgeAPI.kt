@@ -710,45 +710,28 @@ class JSToBridgeAPI(
     // region statusbar
 
     @JavascriptInterface
-    fun getBatteryLevel(): String {
-        return Json.encodeToString(mapOf("batteryLevel" to _batteryInfo.batteryLevel.value))
-    }
+    fun getBatteryLevel() = _batteryInfo.batteryLevel.value
 
     @JavascriptInterface
-    fun getBatteryIsCharging(): String {
-        return Json.encodeToString(mapOf("batteryCharging" to _batteryInfo.isCharging.value))
-    }
+    fun getBatteryIsCharging() = _batteryInfo.isCharging.value
 
     @JavascriptInterface
-    fun getWifiSignalStrength(): String {
-        return Json.encodeToString(mapOf("wifiStrength" to _wifiSignal.wifiSignalStrength.value))
-    }
+    fun getWifiSignalStrength() = _wifiSignal.wifiSignalStrength.value
 
     @JavascriptInterface
-    fun getWifiSignalLevel(): String {
-        return Json.encodeToString(mapOf("wifiSignalLevel" to _wifiSignal.wifiSignalLevel.value))
-    }
+    fun getWifiSignalLevel() = _wifiSignal.wifiSignalLevel.value
 
     @JavascriptInterface
-    fun getWifiSSID(): String {
-        return Json.encodeToString(mapOf("wifiSSID" to _wifiSignal.ssid.value))
-    }
+    fun getWifiSSID() = _wifiSignal.ssid.value
 
     @JavascriptInterface
-    fun getMobileSignalStrength(): String {
-        return Json.encodeToString(mapOf("mobileStrength" to _mobileSignal.mobileSignalStrength.value))
-    }
+    fun getMobileSignalStrength() = _mobileSignal.mobileSignalStrength.value
 
     @JavascriptInterface
-    fun getNetworkType(): String {
-        return Json.encodeToString(mapOf("mobileDataNetworkType" to _mobileSignal.networkType.value))
-    }
+    fun getNetworkType() = _mobileSignal.networkType.value
 
     @JavascriptInterface
-    fun getMobileSignalLevel(): String {
-        return Json.encodeToString(mapOf("mobileSignalLevel" to _mobileSignal.mobileSignalLevel.value))
-    }
-
+    fun getMobileSignalLevel() = _mobileSignal.mobileSignalLevel.value
     // endregion
 
     // region wallpaper

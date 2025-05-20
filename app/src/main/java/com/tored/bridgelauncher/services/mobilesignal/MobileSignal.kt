@@ -3,6 +3,7 @@ package com.tored.bridgelauncher.services.mobilesignal
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.telephony.CellInfo
 import android.telephony.PhoneStateListener
 import android.telephony.ServiceState
 import android.telephony.SignalStrength
@@ -45,14 +46,14 @@ class MobileSignal(private val context: Context) {
         }
     }
 
-    @RequiresPermission(Manifest.permission.READ_PHONE_STATE)
+    @RequiresPermission(allOf = [Manifest.permission.READ_PHONE_STATE, Manifest.permission.ACCESS_FINE_LOCATION])
     fun startup() {
         val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
         val signalStrength = getInitialMobileSignalStrength(telephonyManager)
 
         updateSignalStrengthLevels(signalStrength)
 
-        val networkType = resolveNetworkType(telephonyManager.networkType)
+        val networkType = resolveNetworkType(telephonyManager)
         _networkType.value = networkType
 
         telephonyManager.listen(
@@ -73,17 +74,36 @@ class MobileSignal(private val context: Context) {
         }
     }
 
-    private fun resolveNetworkType(networkType: Int): String {
-        return when (networkType) {
-            TelephonyManager.NETWORK_TYPE_GPRS,
-            TelephonyManager.NETWORK_TYPE_EDGE -> "2G"
-            TelephonyManager.NETWORK_TYPE_UMTS,
-            TelephonyManager.NETWORK_TYPE_HSDPA,
-            TelephonyManager.NETWORK_TYPE_HSUPA,
-            TelephonyManager.NETWORK_TYPE_HSPA -> "3G"
-            TelephonyManager.NETWORK_TYPE_LTE -> "4G"
-            TelephonyManager.NETWORK_TYPE_NR -> "5G"
-            else -> ""
+    private fun resolveNetworkType(telephonyManager: TelephonyManager): String {
+        return try {
+            if (ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED
+            ) {
+                val allCellInfo = telephonyManager.allCellInfo
+                val cellInfo = allCellInfo.firstOrNull { it.isRegistered }
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                    return when (cellInfo) {
+                        is android.telephony.CellInfoCdma -> "2G"
+                        is android.telephony.CellInfoWcdma -> "3G"
+                        is android.telephony.CellInfoLte -> "4G"
+                        is android.telephony.CellInfoNr -> "5G"
+                        else -> ""
+                    }
+                } else {
+                    return when (cellInfo) {
+                        is android.telephony.CellInfoCdma -> "2G"
+                        is android.telephony.CellInfoWcdma -> "3G"
+                        is android.telephony.CellInfoLte -> "4G"
+                        else -> ""
+                    }
+                }
+            }
+            ""
+        } catch (e: SecurityException) {
+            e.printStackTrace()
+            ""
         }
     }
 
