@@ -32,6 +32,7 @@ import com.tored.bridgelauncher.api2.shared.SystemNightModeStringOptions
 import com.tored.bridgelauncher.services.battery.BatteryInfo
 import com.tored.bridgelauncher.services.displayshape.DisplayShapeHolder
 import com.tored.bridgelauncher.services.mobilesignal.MobileSignal
+import com.tored.bridgelauncher.services.notificationbadges.NotificationBadgesService
 import com.tored.bridgelauncher.services.settings2.BridgeSetting
 import com.tored.bridgelauncher.services.settings2.BridgeSettings
 import com.tored.bridgelauncher.services.settings2.getIsBridgeAbleToLockTheScreen
@@ -440,6 +441,14 @@ class JSToBridgeAPI(
         }
     }
 
+    // endregion
+
+    // region
+    @JavascriptInterface
+    fun getNotificationCounts(): String {
+        val counts = NotificationBadgesService.instance?.notificationCounts?.value.orEmpty()
+        return Json.encodeToString(counts)
+    }
     // endregion
 
 

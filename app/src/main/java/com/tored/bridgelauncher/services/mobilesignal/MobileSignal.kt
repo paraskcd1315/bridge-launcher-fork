@@ -3,11 +3,12 @@ package com.tored.bridgelauncher.services.mobilesignal
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
-import android.telephony.CellInfo
+import android.os.Build
 import android.telephony.PhoneStateListener
 import android.telephony.ServiceState
 import android.telephony.SignalStrength
 import android.telephony.TelephonyManager
+import androidx.annotation.RequiresApi
 import androidx.annotation.RequiresPermission
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,6 +35,7 @@ class MobileSignal(private val context: Context) {
             }
         }
 
+        @RequiresApi(Build.VERSION_CODES.Q)
         override fun onDataConnectionStateChanged(state: Int, networkType: Int) {
             super.onDataConnectionStateChanged(state, networkType)
             _networkType.value = resolveNetworkType(telephonyManager)
@@ -48,6 +50,7 @@ class MobileSignal(private val context: Context) {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     @RequiresPermission(allOf = [Manifest.permission.READ_PHONE_STATE, Manifest.permission.ACCESS_FINE_LOCATION])
     fun startup() {
         telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
@@ -76,8 +79,11 @@ class MobileSignal(private val context: Context) {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     private fun resolveNetworkType(telephonyManager: TelephonyManager): String {
-        return try {
+        var result = ""
+
+        try {
             if (ContextCompat.checkSelfPermission(
                     context,
                     Manifest.permission.ACCESS_FINE_LOCATION
@@ -85,28 +91,33 @@ class MobileSignal(private val context: Context) {
             ) {
                 val allCellInfo = telephonyManager.allCellInfo
                 val cellInfo = allCellInfo.firstOrNull { it.isRegistered }
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-                    return when (cellInfo) {
-                        is android.telephony.CellInfoCdma -> "2G"
-                        is android.telephony.CellInfoWcdma -> "3G"
-                        is android.telephony.CellInfoLte -> "4G"
-                        is android.telephony.CellInfoNr -> "5G"
-                        else -> ""
-                    }
-                } else {
-                    return when (cellInfo) {
-                        is android.telephony.CellInfoCdma -> "2G"
-                        is android.telephony.CellInfoWcdma -> "3G"
-                        is android.telephony.CellInfoLte -> "4G"
-                        else -> ""
-                    }
+
+                result = when (cellInfo) {
+                    is android.telephony.CellInfoCdma -> "2G"
+                    is android.telephony.CellInfoGsm -> "2G"
+                    is android.telephony.CellInfoWcdma -> "3G"
+                    is android.telephony.CellInfoLte -> "4G"
+                    is android.telephony.CellInfoNr -> "5G"
+                    else -> ""
                 }
             }
-            ""
+
+            if (result.isBlank()) {
+                result = when (telephonyManager.networkType) {
+                    TelephonyManager.NETWORK_TYPE_GPRS, TelephonyManager.NETWORK_TYPE_EDGE -> "2G"
+                    TelephonyManager.NETWORK_TYPE_UMTS, TelephonyManager.NETWORK_TYPE_HSPA,
+                    TelephonyManager.NETWORK_TYPE_HSDPA, TelephonyManager.NETWORK_TYPE_HSUPA -> "3G"
+                    TelephonyManager.NETWORK_TYPE_LTE -> "4G"
+                    TelephonyManager.NETWORK_TYPE_NR -> "5G"
+                    else -> ""
+                }
+            }
+
         } catch (e: SecurityException) {
             e.printStackTrace()
-            ""
         }
+
+        return result
     }
 
     private fun getInitialMobileSignalStrength(telephonyManager: TelephonyManager): Int {

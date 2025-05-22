@@ -6,6 +6,7 @@ import android.webkit.WebView
 import com.tored.bridgelauncher.api2.bridgetojs.events.apps.AppChangedEvent
 import com.tored.bridgelauncher.api2.bridgetojs.events.apps.AppInstalledEvent
 import com.tored.bridgelauncher.api2.bridgetojs.events.apps.AppRemovedEvent
+import com.tored.bridgelauncher.api2.bridgetojs.events.badges.NotificationCountsChangedEvent
 import com.tored.bridgelauncher.api2.bridgetojs.events.battery.BatteryIsChargingEvent
 import com.tored.bridgelauncher.api2.bridgetojs.events.battery.BatteryLevelChangedEvent
 import com.tored.bridgelauncher.api2.bridgetojs.events.lifecycle.AfterResumeEvent
@@ -36,6 +37,7 @@ import com.tored.bridgelauncher.services.apps.InstalledAppsHolder
 import com.tored.bridgelauncher.services.battery.BatteryInfo
 import com.tored.bridgelauncher.services.lifecycleevents.LifecycleEventsHolder
 import com.tored.bridgelauncher.services.mobilesignal.MobileSignal
+import com.tored.bridgelauncher.services.notificationbadges.NotificationBadgesService
 import com.tored.bridgelauncher.services.perms.PermsHolder
 import com.tored.bridgelauncher.services.settings2.BridgeSetting
 import com.tored.bridgelauncher.services.settings2.BridgeSettings
@@ -46,6 +48,7 @@ import com.tored.bridgelauncher.services.wifisignal.WifiSignal
 import com.tored.bridgelauncher.services.windowinsetsholder.WindowInsetsHolder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
@@ -192,5 +195,20 @@ class BridgeToJSAPI(
     fun startup()
     {
         startCollectingEvents()
+        _scope.launch {
+            var attempts = 0
+            while (NotificationBadgesService.instance == null && attempts < 10) {
+                delay(500)
+                attempts++
+            }
+
+            NotificationBadgesService.instance?.let { service ->
+                Log.d(TAG, "✅ Connected to notificationBadgesService")
+                onCollect(service.notificationCounts) {
+                    Log.d(TAG, "📬 NotificationCountsChangedEvent: $it")
+                    NotificationCountsChangedEvent(it)
+                }
+            } ?: Log.w(TAG, "❌ Still no notificationBadgesService after retries")
+        }
     }
 }

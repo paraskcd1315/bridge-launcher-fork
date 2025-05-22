@@ -95,23 +95,36 @@ class BridgeServer(
                 val endpointStr = path.substring(apiPrefix.length)
                 val endpoint = _endpoints[endpointStr]
 
-                endpoint?.handle(req)
-                    ?: errorResponse(HTTPStatusCode.BadRequest, "There is no API endpoint at ${q(endpointStr)}.")
+                withCORS(endpoint?.handle(req)
+                    ?: errorResponse(HTTPStatusCode.BadRequest, "There is no API endpoint at ${q(endpointStr)}."))
             }
             else
             {
-                _fileServer.handle(req)
+                withCORS(_fileServer.handle(req))
             }
         }
         catch (ex: HttpResponseException)
         {
-            return errorResponse(ex.respStatusCode, ex.respMessage)
+            return withCORS(errorResponse(ex.respStatusCode, ex.respMessage))
         }
         catch (ex: Exception)
         {
             Log.e(TAG, "Unexpected error:", ex)
-            return errorResponse(HTTPStatusCode.InternalServerError, "Unexpected error: $ex")
+            return withCORS(errorResponse(HTTPStatusCode.InternalServerError, "Unexpected error: $ex"))
         }
+    }
+
+    private fun withCORS(response: WebResourceResponse): WebResourceResponse {
+        response.responseHeaders = response.responseHeaders?.toMutableMap()?.apply {
+            put("Access-Control-Allow-Origin", "*")
+            put("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+            put("Access-Control-Allow-Headers", "*")
+        } ?: mapOf(
+            "Access-Control-Allow-Origin" to "*",
+            "Access-Control-Allow-Methods" to "GET, POST, OPTIONS",
+            "Access-Control-Allow-Headers" to "*"
+        )
+        return response
     }
 
     companion object

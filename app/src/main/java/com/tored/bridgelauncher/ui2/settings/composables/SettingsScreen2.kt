@@ -40,6 +40,7 @@ import com.tored.bridgelauncher.ui2.settings.sections.development.SettingsScreen
 import com.tored.bridgelauncher.ui2.settings.sections.overlays.SettingsScreen2OverlaysSectionActions
 import com.tored.bridgelauncher.ui2.settings.sections.overlays.SettingsScreen2OverlaysSectionContent
 import com.tored.bridgelauncher.ui2.settings.sections.overlays.SettingsScreen2OverlaysSectionState
+import com.tored.bridgelauncher.ui2.settings.sections.permissions.SettingsScreen2PermissionSectionContent
 import com.tored.bridgelauncher.ui2.settings.sections.project.ScreenLockingMethodOptions
 import com.tored.bridgelauncher.ui2.settings.sections.project.SettingsScreen2ProjectSectionActions
 import com.tored.bridgelauncher.ui2.settings.sections.project.SettingsScreen2ProjectSectionContent
@@ -222,6 +223,15 @@ fun SettingsScreen2(
                     SettingsScreen2ResetSectionContent(
                         state = resetSectionState,
                         actions = resetSectionActions,
+                    )
+                }
+
+                Divider()
+
+                SettingsScreen2Section(label = "Allow Permissions", iconResId = R.drawable.ic_tools) {
+                    SettingsScreen2PermissionSectionContent(
+                        context = context,
+                        modifier = Modifier
                     )
                 }
             }

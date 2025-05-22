@@ -23,6 +23,7 @@ import com.tored.bridgelauncher.services.iconpackcache.InstalledIconPacksHolder
 import com.tored.bridgelauncher.services.lifecycleevents.LifecycleEventsHolder
 import com.tored.bridgelauncher.services.mobilesignal.MobileSignal
 import com.tored.bridgelauncher.services.mockexport.MockExporter
+import com.tored.bridgelauncher.services.notificationbadges.NotificationBadgesService
 import com.tored.bridgelauncher.services.perms.PermsHolder
 import com.tored.bridgelauncher.services.system.BridgeButtonQSTileService
 import com.tored.bridgelauncher.services.system.BridgeLauncherBroadcastReceiver
@@ -40,6 +41,9 @@ class BridgeLauncherApplication : Application()
     lateinit var qsTileServiceComponentName: ComponentName
 
     lateinit var services: BridgeServices
+
+    val notificationBadgesService: NotificationBadgesService
+        get() = NotificationBadgesService.instance ?: error("Service not initialized")
 
     override fun onCreate()
     {
