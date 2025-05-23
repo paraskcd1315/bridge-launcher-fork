@@ -8,9 +8,11 @@ import android.app.WallpaperManager
 import android.app.admin.DevicePolicyManager
 import android.content.Context
 import android.content.pm.PackageManager
+import android.media.MediaMetadata
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Base64
 import android.util.Log
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
@@ -31,6 +33,7 @@ import com.tored.bridgelauncher.api2.shared.SystemBarAppearanceStringOptions
 import com.tored.bridgelauncher.api2.shared.SystemNightModeStringOptions
 import com.tored.bridgelauncher.services.battery.BatteryInfo
 import com.tored.bridgelauncher.services.displayshape.DisplayShapeHolder
+import com.tored.bridgelauncher.services.mediaplayback.MediaPlayback
 import com.tored.bridgelauncher.services.mobilesignal.MobileSignal
 import com.tored.bridgelauncher.services.notificationbadges.NotificationBadgesService
 import com.tored.bridgelauncher.services.settings2.BridgeSetting
@@ -64,6 +67,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.io.ByteArrayOutputStream
 
 private const val TAG = "JSToBridge"
 
@@ -74,7 +78,8 @@ class JSToBridgeAPI(
     private val _batteryInfo: BatteryInfo,
     private val _mobileSignal: MobileSignal,
     private val _wifiSignal: WifiSignal,
-    private val _wallpaperInfo: WallpaperInfo
+    private val _wallpaperInfo: WallpaperInfo,
+    private val _mediaPlayback: MediaPlayback
 )
 {
     private val _scope = CoroutineScope(Dispatchers.Main)
@@ -759,6 +764,66 @@ class JSToBridgeAPI(
 
     // endregion
 
+    // region media
+
+    @JvmOverloads
+    @JavascriptInterface
+    fun requestMediaPlay(showToastIfFailed: Boolean = true): Boolean {
+        return tryRunInHomescreenContext(showToastIfFailed) { _mediaPlayback.play() }
+    }
+
+    @JvmOverloads
+    @JavascriptInterface
+    fun requestMediaPause(showToastIfFailed: Boolean = true): Boolean {
+        return tryRunInHomescreenContext(showToastIfFailed) { _mediaPlayback.pause() }
+    }
+
+    @JvmOverloads
+    @JavascriptInterface
+    fun requestSeekTo(ms: Long, showToastIfFailed: Boolean = true): Boolean {
+        return tryRunInHomescreenContext(showToastIfFailed) { _mediaPlayback.seekTo(ms) }
+    }
+
+    @JvmOverloads
+    @JavascriptInterface
+    fun requestMediaSkipNext(showToastIfFailed: Boolean = true): Boolean {
+        return tryRunInHomescreenContext(showToastIfFailed) { _mediaPlayback.skipNext() }
+    }
+
+    @JvmOverloads
+    @JavascriptInterface
+    fun requestMediaSkipPrevious(showToastIfFailed: Boolean = true): Boolean {
+        return tryRunInHomescreenContext(showToastIfFailed) { _mediaPlayback.skipPrevious() }
+    }
+
+    @JavascriptInterface
+    fun getCurrentMediaMetadataArtist() = _mediaPlayback.metadata.value?.getString(MediaMetadata.METADATA_KEY_ARTIST)
+
+    @JavascriptInterface
+    fun getCurrentMediaMetadataTitle() = _mediaPlayback.metadata.value?.getString(MediaMetadata.METADATA_KEY_TITLE)
+
+    @JavascriptInterface
+    fun getCurrentMediaMetadataAlbum() = _mediaPlayback.metadata.value?.getString(MediaMetadata.METADATA_KEY_ALBUM)
+
+    @JavascriptInterface
+    fun getCurrentMediaMetadataDuration() = _mediaPlayback.metadata.value?.getLong(MediaMetadata.METADATA_KEY_DURATION)
+
+    @JavascriptInterface
+    fun getCurrentMediaMetadataArtworkBase64(): String? {
+        val bitmap = _mediaPlayback.metadata.value?.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART)
+            ?: _mediaPlayback.metadata.value?.getBitmap(MediaMetadata.METADATA_KEY_ART)
+
+        return bitmap?.let {
+            val outputStream = ByteArrayOutputStream()
+            it.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, outputStream)
+            Base64.encodeToString(outputStream.toByteArray(), Base64.NO_WRAP)
+        }
+    }
+
+    @JavascriptInterface
+    fun getIsPlaying() = _mediaPlayback.isPlaying.value
+
+    // endregion
 
     // region helpers
 

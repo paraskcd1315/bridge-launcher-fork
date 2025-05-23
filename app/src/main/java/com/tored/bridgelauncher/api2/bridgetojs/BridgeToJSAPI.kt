@@ -12,6 +12,8 @@ import com.tored.bridgelauncher.api2.bridgetojs.events.battery.BatteryLevelChang
 import com.tored.bridgelauncher.api2.bridgetojs.events.lifecycle.AfterResumeEvent
 import com.tored.bridgelauncher.api2.bridgetojs.events.lifecycle.BeforePauseEvent
 import com.tored.bridgelauncher.api2.bridgetojs.events.lifecycle.NewIntentEvent
+import com.tored.bridgelauncher.api2.bridgetojs.events.mediaplayback.IsPlayingEvent
+import com.tored.bridgelauncher.api2.bridgetojs.events.mediaplayback.MediaMetaDataEvent
 import com.tored.bridgelauncher.api2.bridgetojs.events.mobile.MobileNetworkTypeEvent
 import com.tored.bridgelauncher.api2.bridgetojs.events.mobile.MobileSignalEvent
 import com.tored.bridgelauncher.api2.bridgetojs.events.mobile.MobileStrengthEvent
@@ -36,6 +38,7 @@ import com.tored.bridgelauncher.services.apps.InstalledAppListChangeEvent
 import com.tored.bridgelauncher.services.apps.InstalledAppsHolder
 import com.tored.bridgelauncher.services.battery.BatteryInfo
 import com.tored.bridgelauncher.services.lifecycleevents.LifecycleEventsHolder
+import com.tored.bridgelauncher.services.mediaplayback.MediaPlayback
 import com.tored.bridgelauncher.services.mobilesignal.MobileSignal
 import com.tored.bridgelauncher.services.notificationbadges.NotificationBadgesService
 import com.tored.bridgelauncher.services.perms.PermsHolder
@@ -63,7 +66,8 @@ class BridgeToJSAPI(
     private val _lifecycleEventsHolder: LifecycleEventsHolder,
     private val _batteryInfo: BatteryInfo,
     private val _wifiSignal: WifiSignal,
-    private val _mobileSignal: MobileSignal
+    private val _mobileSignal: MobileSignal,
+    private val _mediaPlayback: MediaPlayback
 )
 {
     private val _scope = CoroutineScope(Dispatchers.Main)
@@ -166,6 +170,11 @@ class BridgeToJSAPI(
         onCollect(_mobileSignal.mobileSignalStrength) { MobileStrengthEvent(it) }
         onCollect(_mobileSignal.networkType) { MobileNetworkTypeEvent(it) }
         onCollect(_mobileSignal.mobileSignalLevel) { MobileSignalEvent(it) }
+
+
+        // Media playback event collectors
+        onCollect(_mediaPlayback.isPlaying) { IsPlayingEvent(it) }
+        onCollect(_mediaPlayback.metadata) { MediaMetaDataEvent.fromMediaMetadata(it) }
     }
 
     private fun <T> CoroutineScope.onCollect(flow: Flow<T>, newValueToEvent: (newValue: T) -> BridgeEventModel?)

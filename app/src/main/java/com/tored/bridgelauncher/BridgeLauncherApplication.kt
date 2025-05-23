@@ -5,7 +5,9 @@ import android.app.Application
 import android.app.UiModeManager
 import android.content.ComponentName
 import android.content.pm.PackageManager
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.annotation.RequiresPermission
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -21,6 +23,7 @@ import com.tored.bridgelauncher.services.iconcache.IconCache
 import com.tored.bridgelauncher.services.iconpackcache.IconPackCache
 import com.tored.bridgelauncher.services.iconpackcache.InstalledIconPacksHolder
 import com.tored.bridgelauncher.services.lifecycleevents.LifecycleEventsHolder
+import com.tored.bridgelauncher.services.mediaplayback.MediaPlayback
 import com.tored.bridgelauncher.services.mobilesignal.MobileSignal
 import com.tored.bridgelauncher.services.mockexport.MockExporter
 import com.tored.bridgelauncher.services.notificationbadges.NotificationBadgesService
@@ -70,6 +73,7 @@ class BridgeLauncherApplication : Application()
         val mobileSignal = MobileSignal(this)
         val wifiSignal = WifiSignal(this)
         val wallpaperInfo = WallpaperInfo(this)
+        val mediaPlayback = MediaPlayback(this)
 
         val pm = packageManager
         val uiModeManager = getSystemService(UI_MODE_SERVICE) as UiModeManager
@@ -100,7 +104,8 @@ class BridgeLauncherApplication : Application()
             _systemUIMode = systemUIModeHolder,
             _batteryInfo = batteryInfo,
             _mobileSignal = mobileSignal,
-            _wifiSignal = wifiSignal
+            _wifiSignal = wifiSignal,
+            _mediaPlayback = mediaPlayback
         )
 
         val jsToBridgeAPI = JSToBridgeAPI(
@@ -110,7 +115,8 @@ class BridgeLauncherApplication : Application()
             _batteryInfo = batteryInfo,
             _wifiSignal = wifiSignal,
             _mobileSignal = mobileSignal,
-            _wallpaperInfo = wallpaperInfo
+            _wallpaperInfo = wallpaperInfo,
+            _mediaPlayback = mediaPlayback
         )
 
         val bridgeServer = BridgeServer(
@@ -159,10 +165,12 @@ class BridgeLauncherApplication : Application()
             wifiSignalService = wifiSignal,
             mobileSignalServices = mobileSignal,
             batteryStatusService = batteryInfo,
-            wallpaperServices = wallpaperInfo
+            wallpaperServices = wallpaperInfo,
+            mediaPlayback = mediaPlayback
         )
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.READ_PHONE_STATE])
     private fun startup()
     {
@@ -182,5 +190,6 @@ class BridgeLauncherApplication : Application()
         services.mobileSignalServices.startup()
         services.wifiSignalService.startup()
         services.wallpaperServices.startup()
+        services.mediaPlayback.startup()
     }
 }
