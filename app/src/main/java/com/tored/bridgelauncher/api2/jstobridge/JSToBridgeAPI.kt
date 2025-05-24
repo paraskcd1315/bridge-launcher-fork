@@ -823,6 +823,14 @@ class JSToBridgeAPI(
     @JavascriptInterface
     fun getIsPlaying() = _mediaPlayback.isPlaying.value
 
+    @JvmOverloads
+    @JavascriptInterface
+    fun requestMediaAppLaunch(showToastIfFailed: Boolean = true): Boolean {
+        return tryRunInHomescreenContext(showToastIfFailed) {
+            _mediaPlayback.packageName.value?.let { launchApp(it) }
+        }
+    }
+
     // endregion
 
     // region helpers

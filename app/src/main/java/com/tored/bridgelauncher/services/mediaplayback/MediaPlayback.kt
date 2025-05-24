@@ -31,6 +31,9 @@ class MediaPlayback(private val context: Context) {
     private val _metadata = MutableStateFlow<android.media.MediaMetadata?>(null)
     val metadata = _metadata.asStateFlow()
 
+    private val _mediaPackageName = MutableStateFlow<String?>(null)
+    val packageName = _mediaPackageName.asStateFlow()
+
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     fun startup() {
@@ -48,6 +51,8 @@ class MediaPlayback(private val context: Context) {
                     }
 
                     Log.d("MediaPlayback", "Controller selected: ${mediaController?.packageName}")
+
+                    _mediaPackageName.value = mediaController?.packageName
 
                     mediaController?.registerCallback(mediaCallback)
                     mediaController?.metadata?.let { _metadata.value = it }
@@ -85,6 +90,8 @@ class MediaPlayback(private val context: Context) {
                         it.metadata != null
             }
             Log.d("MediaPlayback", "🎯 Switching to: ${newController?.packageName}")
+
+            _mediaPackageName.value = newController?.packageName
 
             withContext(Dispatchers.Main) {
                 mediaController?.unregisterCallback(mediaCallback)
