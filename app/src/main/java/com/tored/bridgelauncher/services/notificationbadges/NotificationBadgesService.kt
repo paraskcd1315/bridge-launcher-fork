@@ -72,6 +72,7 @@ class NotificationBadgesService : NotificationListenerService() {
     }
     override fun onDestroy() {
         super.onDestroy()
+        instance = null
         serviceScope.cancel()
     }
 }

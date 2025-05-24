@@ -17,7 +17,12 @@ class WallpaperInfo(private val context: Context) {
 
     fun getWallpaper() {
         val wallpaperManager = WallpaperManager.getInstance(context)
-        val drawable = wallpaperManager.drawable
+        val drawable = try {
+            wallpaperManager.drawable
+        } catch (e: SecurityException) {
+            e.printStackTrace()
+            return
+        }
 
         if (drawable is BitmapDrawable) {
             val bitmap: Bitmap = drawable.bitmap

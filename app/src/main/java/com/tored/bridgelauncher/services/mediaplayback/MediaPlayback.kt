@@ -3,8 +3,11 @@ package com.tored.bridgelauncher.services.mediaplayback
 import android.content.ComponentName
 import android.content.Context
 import android.media.session.MediaSessionManager
+import android.media.session.PlaybackState
 import android.util.Log
 import android.widget.MediaController
+import android.os.Handler
+import android.os.Looper
 import com.tored.bridgelauncher.services.notificationbadges.NotificationBadgesService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -31,25 +34,27 @@ class MediaPlayback(private val context: Context) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     fun startup() {
-        scope.launch {
-            repeat(20) { _ ->
+        scope.launch(Dispatchers.Main) {
+            repeat(20) {
                 delay(500)
                 val service = NotificationBadgesService.instance
                 if (service != null) {
                     val component = ComponentName(service, NotificationBadgesService::class.java)
+
                     val controllers = mediaSessionManager.getActiveSessions(component)
 
                     mediaController = controllers.firstOrNull {
-                        it.playbackState?.state == android.media.session.PlaybackState.STATE_PLAYING ||
-                                it.metadata != null
+                        it.playbackState?.state == PlaybackState.STATE_PLAYING || it.metadata != null
                     }
+
                     Log.d("MediaPlayback", "Controller selected: ${mediaController?.packageName}")
 
-                    withContext(Dispatchers.Main) {
-                        mediaController?.registerCallback(mediaCallback)
-                        mediaController?.metadata?.let { _metadata.value = it }
-                        mediaController?.playbackState?.let { updatePlaybackState(it) }
-                    }
+                    mediaController?.registerCallback(mediaCallback)
+                    mediaController?.metadata?.let { _metadata.value = it }
+                    mediaController?.playbackState?.let { updatePlaybackState(it) }
+
+                    mediaSessionManager.addOnActiveSessionsChangedListener(sessionListener, component, Handler(Looper.getMainLooper()))
+
                     return@launch
                 }
             }
@@ -71,6 +76,31 @@ class MediaPlayback(private val context: Context) {
         _isPlaying.value = state?.state == android.media.session.PlaybackState.STATE_PLAYING
         _position.value = state?.position ?: 0L
     }
+
+    private val sessionListener = MediaSessionManager.OnActiveSessionsChangedListener { controllers ->
+        scope.launch {
+            Log.d("MediaPlayback", "⚡ Active sessions changed")
+            val newController = controllers?.firstOrNull {
+                it.playbackState?.state == android.media.session.PlaybackState.STATE_PLAYING ||
+                        it.metadata != null
+            }
+            Log.d("MediaPlayback", "🎯 Switching to: ${newController?.packageName}")
+
+            withContext(Dispatchers.Main) {
+                mediaController?.unregisterCallback(mediaCallback)
+                mediaController = newController
+                if (mediaController != null) {
+                    mediaController?.registerCallback(mediaCallback)
+                    mediaController?.metadata?.let { _metadata.value = it }
+                    mediaController?.playbackState?.let { updatePlaybackState(it) }
+                } else {
+                    _metadata.value = null
+                    updatePlaybackState(null)
+                }
+            }
+        }
+    }
+
 
     fun play() = mediaController?.transportControls?.play()
     fun pause() = mediaController?.transportControls?.pause()

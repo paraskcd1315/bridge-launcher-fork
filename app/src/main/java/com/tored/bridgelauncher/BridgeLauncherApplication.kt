@@ -189,7 +189,12 @@ class BridgeLauncherApplication : Application()
         services.bridgeToJSInterface.startup()
         services.mobileSignalServices.startup()
         services.wifiSignalService.startup()
-        services.wallpaperServices.startup()
+        try {
+            services.wallpaperServices.startup()
+        } catch (e: SecurityException) {
+            Log.e("WallpaperInfo", "Permission denied: ${e.message}")
+            // Maneja la falta de permiso (ej. mostrar fondo por defecto)
+        }
         services.mediaPlayback.startup()
     }
 }

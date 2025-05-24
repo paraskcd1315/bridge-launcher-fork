@@ -16,6 +16,7 @@ import android.provider.Settings
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import android.content.pm.PackageManager
+import android.os.Build
 
 @Composable
 fun SettingsScreen2PermissionSectionContent(
@@ -32,10 +33,17 @@ fun SettingsScreen2PermissionSectionContent(
         Manifest.permission.READ_PHONE_STATE
     ) == PackageManager.PERMISSION_GRANTED
 
-    val extStorageGranted = ContextCompat.checkSelfPermission(
-        context,
-        Manifest.permission.READ_EXTERNAL_STORAGE
-    ) == PackageManager.PERMISSION_GRANTED
+    val extStorageGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.READ_MEDIA_IMAGES
+        ) == PackageManager.PERMISSION_GRANTED
+    } else {
+        ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        ) == PackageManager.PERMISSION_GRANTED
+    }
 
     Column(
         modifier = modifier
@@ -81,13 +89,19 @@ fun SettingsScreen2PermissionSectionContent(
         }
 
         if (!extStorageGranted) {
+            val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                Manifest.permission.READ_MEDIA_IMAGES
+            } else {
+                Manifest.permission.READ_EXTERNAL_STORAGE
+            }
+
             Btn(
-                text = "Allow Storage Access",
+                text = "Allow Image Storage Access",
                 contentColor = MaterialTheme.colors.onSurface,
                 onClick = {
                     ActivityCompat.requestPermissions(
                         context as Activity,
-                        arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
+                        arrayOf(permission),
                         1003
                     )
                 }
