@@ -13,6 +13,7 @@ import com.tored.bridgelauncher.services.iconcache.IconCache
 import com.tored.bridgelauncher.services.iconpackcache.IconPackCache
 import com.tored.bridgelauncher.services.iconpackcache.InstalledIconPacksHolder
 import com.tored.bridgelauncher.services.lifecycleevents.LifecycleEventsHolder
+import com.tored.bridgelauncher.services.location.LocationInfo
 import com.tored.bridgelauncher.services.mediaplayback.MediaPlayback
 import com.tored.bridgelauncher.services.mobilesignal.MobileSignal
 import com.tored.bridgelauncher.services.mockexport.MockExporter
@@ -57,5 +58,7 @@ data class BridgeServices(
     // wallpaper
     val wallpaperServices: WallpaperInfo,
 
-    val mediaPlayback: MediaPlayback
+    val mediaPlayback: MediaPlayback,
+
+    val locationInfoServices: LocationInfo
 )

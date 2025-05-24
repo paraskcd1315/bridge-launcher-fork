@@ -33,6 +33,7 @@ import com.tored.bridgelauncher.api2.shared.SystemBarAppearanceStringOptions
 import com.tored.bridgelauncher.api2.shared.SystemNightModeStringOptions
 import com.tored.bridgelauncher.services.battery.BatteryInfo
 import com.tored.bridgelauncher.services.displayshape.DisplayShapeHolder
+import com.tored.bridgelauncher.services.location.LocationInfo
 import com.tored.bridgelauncher.services.mediaplayback.MediaPlayback
 import com.tored.bridgelauncher.services.mobilesignal.MobileSignal
 import com.tored.bridgelauncher.services.notificationbadges.NotificationBadgesService
@@ -64,6 +65,7 @@ import com.tored.bridgelauncher.utils.startWallpaperPickerActivity
 import com.tored.bridgelauncher.utils.toPx
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -79,7 +81,8 @@ class JSToBridgeAPI(
     private val _mobileSignal: MobileSignal,
     private val _wifiSignal: WifiSignal,
     private val _wallpaperInfo: WallpaperInfo,
-    private val _mediaPlayback: MediaPlayback
+    private val _mediaPlayback: MediaPlayback,
+    private val _locationInfo: LocationInfo
 )
 {
     private val _scope = CoroutineScope(Dispatchers.Main)
@@ -105,6 +108,33 @@ class JSToBridgeAPI(
     private val _showBridgeButton = s(BridgeSettings.showBridgeButton)
     private val _drawSystemWallpaperBehindWebView = s(BridgeSettings.drawSystemWallpaperBehindWebView)
     private val _drawWebViewOverscrollEffects = s(BridgeSettings.drawWebViewOverscrollEffects)
+
+    private var cachedLatitude: Double = 0.0
+    private var cachedLongitude: Double = 0.0
+
+    init {
+        // Eagerly set if available
+        _locationInfo.latitude.value?.let { cachedLatitude = it }
+        _locationInfo.longitude.value?.let { cachedLongitude = it }
+
+        // Launch observer that waits for future updates
+        _scope.launch {
+            _locationInfo.latitude.collect { lat ->
+                lat?.let {
+                    Log.d("JSToBridge", "Updating cachedLatitude = $it")
+                    cachedLatitude = it
+                }
+            }
+        }
+        _scope.launch {
+            _locationInfo.longitude.collect { lon ->
+                lon?.let {
+                    Log.d("JSToBridge", "Updating cachedLongitude = $it")
+                    cachedLongitude = it
+                }
+            }
+        }
+    }
 
     private var _lastException: Exception? = null
         set(value)
@@ -832,6 +862,17 @@ class JSToBridgeAPI(
     }
 
     // endregion
+
+    // region location
+
+    @JavascriptInterface
+    fun getLocationLatitude(): Double = cachedLatitude
+
+    @JavascriptInterface
+    fun getLocationLongitude(): Double = cachedLongitude
+
+    // endregion
+
 
     // region helpers
 

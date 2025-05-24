@@ -38,6 +38,7 @@ import com.tored.bridgelauncher.services.apps.InstalledAppListChangeEvent
 import com.tored.bridgelauncher.services.apps.InstalledAppsHolder
 import com.tored.bridgelauncher.services.battery.BatteryInfo
 import com.tored.bridgelauncher.services.lifecycleevents.LifecycleEventsHolder
+import com.tored.bridgelauncher.services.location.LocationInfo
 import com.tored.bridgelauncher.services.mediaplayback.MediaPlayback
 import com.tored.bridgelauncher.services.mobilesignal.MobileSignal
 import com.tored.bridgelauncher.services.notificationbadges.NotificationBadgesService
@@ -49,6 +50,8 @@ import com.tored.bridgelauncher.services.settings2.useBridgeSettingStateFlow
 import com.tored.bridgelauncher.services.uimode.SystemUIModeHolder
 import com.tored.bridgelauncher.services.wifisignal.WifiSignal
 import com.tored.bridgelauncher.services.windowinsetsholder.WindowInsetsHolder
+import com.tored.bridgelauncher.api2.bridgetojs.events.location.LocationInfoEvent
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -67,7 +70,8 @@ class BridgeToJSAPI(
     private val _batteryInfo: BatteryInfo,
     private val _wifiSignal: WifiSignal,
     private val _mobileSignal: MobileSignal,
-    private val _mediaPlayback: MediaPlayback
+    private val _mediaPlayback: MediaPlayback,
+    private val _locationInfo: LocationInfo
 )
 {
     private val _scope = CoroutineScope(Dispatchers.Main)
@@ -159,7 +163,7 @@ class BridgeToJSAPI(
             onCollect(homeScreenAfterResume) { AfterResumeEvent() }
         }
 
-        // Integración de nuevos servicios: BatteryInfo, WifiSignal, MobileSignal
+        // BatteryInfo, WifiSignal, MobileSignal
         onCollect(_batteryInfo.batteryLevel) { BatteryLevelChangedEvent(it) }
         onCollect(_batteryInfo.isCharging) { BatteryIsChargingEvent(it) }
 
@@ -175,6 +179,13 @@ class BridgeToJSAPI(
         // Media playback event collectors
         onCollect(_mediaPlayback.isPlaying) { IsPlayingEvent(it) }
         onCollect(_mediaPlayback.metadata) { MediaMetaDataEvent.fromMediaMetadata(it) }
+
+        //Location info collectors
+        val locationTupleFlow: Flow<Pair<Double?, Double?>> =
+            combine(_locationInfo.latitude, _locationInfo.longitude) { lat, lon -> lat to lon }
+
+        onCollect(locationTupleFlow) { (lat, lon) -> LocationInfoEvent.fromLatLon(lat, lon) }
+
     }
 
     private fun <T> CoroutineScope.onCollect(flow: Flow<T>, newValueToEvent: (newValue: T) -> BridgeEventModel?)

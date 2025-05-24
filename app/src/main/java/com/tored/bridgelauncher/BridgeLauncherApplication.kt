@@ -23,6 +23,7 @@ import com.tored.bridgelauncher.services.iconcache.IconCache
 import com.tored.bridgelauncher.services.iconpackcache.IconPackCache
 import com.tored.bridgelauncher.services.iconpackcache.InstalledIconPacksHolder
 import com.tored.bridgelauncher.services.lifecycleevents.LifecycleEventsHolder
+import com.tored.bridgelauncher.services.location.LocationInfo
 import com.tored.bridgelauncher.services.mediaplayback.MediaPlayback
 import com.tored.bridgelauncher.services.mobilesignal.MobileSignal
 import com.tored.bridgelauncher.services.mockexport.MockExporter
@@ -74,6 +75,7 @@ class BridgeLauncherApplication : Application()
         val wifiSignal = WifiSignal(this)
         val wallpaperInfo = WallpaperInfo(this)
         val mediaPlayback = MediaPlayback(this)
+        val locationInfo = LocationInfo(this)
 
         val pm = packageManager
         val uiModeManager = getSystemService(UI_MODE_SERVICE) as UiModeManager
@@ -105,7 +107,8 @@ class BridgeLauncherApplication : Application()
             _batteryInfo = batteryInfo,
             _mobileSignal = mobileSignal,
             _wifiSignal = wifiSignal,
-            _mediaPlayback = mediaPlayback
+            _mediaPlayback = mediaPlayback,
+            _locationInfo = locationInfo
         )
 
         val jsToBridgeAPI = JSToBridgeAPI(
@@ -116,7 +119,8 @@ class BridgeLauncherApplication : Application()
             _wifiSignal = wifiSignal,
             _mobileSignal = mobileSignal,
             _wallpaperInfo = wallpaperInfo,
-            _mediaPlayback = mediaPlayback
+            _mediaPlayback = mediaPlayback,
+            _locationInfo = locationInfo
         )
 
         val bridgeServer = BridgeServer(
@@ -166,12 +170,12 @@ class BridgeLauncherApplication : Application()
             mobileSignalServices = mobileSignal,
             batteryStatusService = batteryInfo,
             wallpaperServices = wallpaperInfo,
-            mediaPlayback = mediaPlayback
+            mediaPlayback = mediaPlayback,
+            locationInfoServices = locationInfo
         )
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
-    @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.READ_PHONE_STATE])
     private fun startup()
     {
         ContextCompat.registerReceiver(
@@ -187,7 +191,13 @@ class BridgeLauncherApplication : Application()
         services.iconCache.startup()
         services.installedAppsHolder.startup()
         services.bridgeToJSInterface.startup()
-        services.mobileSignalServices.startup()
+        try {
+            services.mobileSignalServices.startup()
+            services.locationInfoServices.startup()
+        } catch (e: SecurityException) {
+            Log.e("MobileSignal and Location", "Permission denied: ${e.message}")
+            // Maneja la falta de permiso (ej. mostrar fondo por defecto)
+        }
         services.wifiSignalService.startup()
         try {
             services.wallpaperServices.startup()
