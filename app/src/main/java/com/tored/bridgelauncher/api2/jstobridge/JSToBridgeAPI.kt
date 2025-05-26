@@ -33,6 +33,7 @@ import com.tored.bridgelauncher.api2.shared.SystemBarAppearanceStringOptions
 import com.tored.bridgelauncher.api2.shared.SystemNightModeStringOptions
 import com.tored.bridgelauncher.services.battery.BatteryInfo
 import com.tored.bridgelauncher.services.displayshape.DisplayShapeHolder
+import com.tored.bridgelauncher.services.googlesearch.GoogleSearch
 import com.tored.bridgelauncher.services.location.LocationInfo
 import com.tored.bridgelauncher.services.mediaplayback.MediaPlayback
 import com.tored.bridgelauncher.services.mobilesignal.MobileSignal
@@ -82,7 +83,8 @@ class JSToBridgeAPI(
     private val _wifiSignal: WifiSignal,
     private val _wallpaperInfo: WallpaperInfo,
     private val _mediaPlayback: MediaPlayback,
-    private val _locationInfo: LocationInfo
+    private val _locationInfo: LocationInfo,
+    private val _googleSearch: GoogleSearch
 )
 {
     private val _scope = CoroutineScope(Dispatchers.Main)
@@ -872,6 +874,18 @@ class JSToBridgeAPI(
     fun getLocationLongitude(): Double = cachedLongitude
 
     // endregion
+
+    // region googlesearch
+
+    @JvmOverloads
+    @JavascriptInterface
+    fun requestGoogleSearch(query: String, showToastIfFailed: Boolean = true): Boolean {
+        return tryRunInHomescreenContext(showToastIfFailed) {
+            _googleSearch.search(query)
+        }
+    }
+
+    //endregion
 
 
     // region helpers

@@ -5,7 +5,6 @@ import android.content.Context
 import android.media.session.MediaSessionManager
 import android.media.session.PlaybackState
 import android.util.Log
-import android.widget.MediaController
 import android.os.Handler
 import android.os.Looper
 import com.tored.bridgelauncher.services.notificationbadges.NotificationBadgesService
@@ -17,6 +16,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.isActive
 
 class MediaPlayback(private val context: Context) {
     private val mediaSessionManager = context.getSystemService(Context.MEDIA_SESSION_SERVICE) as MediaSessionManager
@@ -60,6 +61,8 @@ class MediaPlayback(private val context: Context) {
 
                     mediaSessionManager.addOnActiveSessionsChangedListener(sessionListener, component, Handler(Looper.getMainLooper()))
 
+                    startFallbackPollingIfNeeded()
+
                     return@launch
                 }
             }
@@ -72,13 +75,13 @@ class MediaPlayback(private val context: Context) {
             _metadata.value = metadata
         }
 
-        override fun onPlaybackStateChanged(state: android.media.session.PlaybackState?) {
+        override fun onPlaybackStateChanged(state: PlaybackState?) {
             updatePlaybackState(state)
         }
     }
 
-    private fun updatePlaybackState(state: android.media.session.PlaybackState?) {
-        _isPlaying.value = state?.state == android.media.session.PlaybackState.STATE_PLAYING
+    private fun updatePlaybackState(state: PlaybackState?) {
+        _isPlaying.value = state?.state == PlaybackState.STATE_PLAYING
         _position.value = state?.position ?: 0L
     }
 
@@ -86,7 +89,7 @@ class MediaPlayback(private val context: Context) {
         scope.launch {
             Log.d("MediaPlayback", "⚡ Active sessions changed")
             val newController = controllers?.firstOrNull {
-                it.playbackState?.state == android.media.session.PlaybackState.STATE_PLAYING ||
+                it.playbackState?.state == PlaybackState.STATE_PLAYING ||
                         it.metadata != null
             }
             Log.d("MediaPlayback", "🎯 Switching to: ${newController?.packageName}")
@@ -103,6 +106,51 @@ class MediaPlayback(private val context: Context) {
                 } else {
                     _metadata.value = null
                     updatePlaybackState(null)
+                    startFallbackPollingIfNeeded()
+                }
+            }
+        }
+    }
+
+    private var pollingJob: Job? = null
+
+    private fun startFallbackPollingIfNeeded() {
+        if (pollingJob?.isActive == true) return
+
+        pollingJob = scope.launch {
+            while (isActive) {
+                var recovered = false
+
+                repeat(6) { // Intentos rápidos durante 30s
+                    delay(5000)
+                    val service = NotificationBadgesService.instance ?: return@launch
+                    val component = ComponentName(service, NotificationBadgesService::class.java)
+                    val controllers = mediaSessionManager.getActiveSessions(component)
+
+                    val newController = controllers.firstOrNull {
+                        it.playbackState?.state == PlaybackState.STATE_PLAYING || it.metadata != null
+                    }
+
+                    if (newController != null) {
+                        Log.d("MediaPlayback", "🔁 Polling recovered controller: ${newController.packageName}")
+
+                        withContext(Dispatchers.Main) {
+                            mediaController?.unregisterCallback(mediaCallback)
+                            mediaController = newController
+                            mediaController?.registerCallback(mediaCallback)
+                            _metadata.value = mediaController?.metadata
+                            updatePlaybackState(mediaController?.playbackState)
+                            _mediaPackageName.value = mediaController?.packageName
+                        }
+
+                        recovered = true
+                        return@launch
+                    }
+                }
+
+                if (!recovered) {
+                    Log.w("MediaPlayback", "😴 No session recovered, entering cooldown")
+                    delay(60000) // Espera 1 minuto antes de reintentar
                 }
             }
         }

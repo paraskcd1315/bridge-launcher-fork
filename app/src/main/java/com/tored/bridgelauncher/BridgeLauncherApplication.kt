@@ -19,6 +19,7 @@ import com.tored.bridgelauncher.services.apps.InstalledAppsHolder
 import com.tored.bridgelauncher.services.battery.BatteryInfo
 import com.tored.bridgelauncher.services.devconsole.DevConsoleMessagesHolder
 import com.tored.bridgelauncher.services.displayshape.DisplayShapeHolder
+import com.tored.bridgelauncher.services.googlesearch.GoogleSearch
 import com.tored.bridgelauncher.services.iconcache.IconCache
 import com.tored.bridgelauncher.services.iconpackcache.IconPackCache
 import com.tored.bridgelauncher.services.iconpackcache.InstalledIconPacksHolder
@@ -76,6 +77,7 @@ class BridgeLauncherApplication : Application()
         val wallpaperInfo = WallpaperInfo(this)
         val mediaPlayback = MediaPlayback(this)
         val locationInfo = LocationInfo(this)
+        val googleSearch = GoogleSearch(this)
 
         val pm = packageManager
         val uiModeManager = getSystemService(UI_MODE_SERVICE) as UiModeManager
@@ -120,7 +122,8 @@ class BridgeLauncherApplication : Application()
             _mobileSignal = mobileSignal,
             _wallpaperInfo = wallpaperInfo,
             _mediaPlayback = mediaPlayback,
-            _locationInfo = locationInfo
+            _locationInfo = locationInfo,
+            _googleSearch = googleSearch
         )
 
         val bridgeServer = BridgeServer(
