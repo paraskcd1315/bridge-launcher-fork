@@ -82,6 +82,7 @@ dependencies {
     androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_ui_version"
     debugImplementation "androidx.compose.ui:ui-tooling:$compose_ui_version"
     debugImplementation "androidx.compose.ui:ui-test-manifest:$compose_ui_version"
+    implementation("com.squareup.okhttp3:okhttp:4.12.0") // or latest
 }
 
 // Allow references to generated code

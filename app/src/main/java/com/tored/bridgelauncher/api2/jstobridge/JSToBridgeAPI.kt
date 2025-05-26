@@ -885,6 +885,17 @@ class JSToBridgeAPI(
         }
     }
 
+    @JavascriptInterface
+    fun getGoogleSearchSuggestions(query: String): String {
+        return try {
+            val suggestions = _googleSearch.getSuggestions(query)
+            Json.encodeToString(suggestions)
+        } catch (e: Exception) {
+            _lastException = e
+            "[]"
+        }
+    }
+
     //endregion
 
 
