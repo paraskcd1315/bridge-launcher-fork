@@ -65,7 +65,8 @@
             android:exported="true"
             android:launchMode="singleTask"
             android:theme="@style/Theme.BridgeLauncher.Wallpaper"
-            android:windowSoftInputMode="adjustResize">
+            android:windowSoftInputMode="adjustResize"
+            android:screenOrientation="portrait">
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
