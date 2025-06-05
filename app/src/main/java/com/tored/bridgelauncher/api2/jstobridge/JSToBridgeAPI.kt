@@ -794,6 +794,9 @@ class JSToBridgeAPI(
     @JavascriptInterface
     fun getSystemWallpaperBase64() = _wallpaperInfo.wallpaperBase64.value
 
+    @JavascriptInterface
+    fun getMonetPaletteJson() = _wallpaperInfo.monetPaletteJson.value
+
     // endregion
 
     // region media

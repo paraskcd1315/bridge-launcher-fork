@@ -160,6 +160,7 @@ class HomeScreen2VM(
     fun onConfigurationChanged()
     {
         _systemUIModeHolder.onConfigurationChanged()
+        _app.services.wallpaperServices.refresh()
     }
 
     fun beforeDestroy()
