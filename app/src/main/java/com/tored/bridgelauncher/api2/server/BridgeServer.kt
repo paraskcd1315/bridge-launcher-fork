@@ -7,12 +7,14 @@ import com.tored.bridgelauncher.BridgeLauncherApplication
 import com.tored.bridgelauncher.api2.server.endpoints.AppIconsEndpoint
 import com.tored.bridgelauncher.api2.server.endpoints.AppsEndpoint
 import com.tored.bridgelauncher.api2.server.endpoints.BridgeFileServer
+import com.tored.bridgelauncher.api2.server.endpoints.CalendarEventsEndpoint
 import com.tored.bridgelauncher.api2.server.endpoints.IconPackContentEndpoint
 import com.tored.bridgelauncher.api2.server.endpoints.IconPacksEndpoint
 import com.tored.bridgelauncher.api2.server.endpoints.WallpaperInfoEndpoint
 import com.tored.bridgelauncher.services.apps.InstalledAppsHolder
 import com.tored.bridgelauncher.services.apps.SerializableInstalledApp
 import com.tored.bridgelauncher.services.battery.BatteryInfo
+import com.tored.bridgelauncher.services.calendar.CalendarEvents
 import com.tored.bridgelauncher.services.iconpackcache.InstalledIconPacksHolder
 import com.tored.bridgelauncher.services.mobilesignal.MobileSignal
 import com.tored.bridgelauncher.services.settings2.BridgeSetting
@@ -49,11 +51,23 @@ data class BridgeAPIEndpointWallpaperInfoSignalResponse(
     val wallpaperBase64: String
 )
 
+@Serializable
+data class CalendarEventSerializable(
+    val id: String,
+    val title: String,
+    val startTime: String,
+    val endTime: String,
+    val calendarName: String?,
+    val calendarId: Long,
+    val allDay: Boolean?
+)
+
 class BridgeServer(
     private val _app: BridgeLauncherApplication,
     private val _apps: InstalledAppsHolder,
     private val _iconPacks: InstalledIconPacksHolder,
-    private val _wallpaperInfo: WallpaperInfo
+    private val _wallpaperInfo: WallpaperInfo,
+    private val _calendarEvents: CalendarEvents
 )
 {
     private val _scope = CoroutineScope(Dispatchers.Main) + SupervisorJob()
@@ -73,7 +87,8 @@ class BridgeServer(
         ENDPOINT_APP_ICONS to AppIconsEndpoint(_apps, _iconPacks),
         ENDPOINT_ICON_PACKS to IconPacksEndpoint(_iconPacks),
         ENDPOINT_ICON_PACK_CONTENT to IconPackContentEndpoint(_iconPacks),
-        ENDPOINT_WALLPAPER to WallpaperInfoEndpoint(_wallpaperInfo)
+        ENDPOINT_WALLPAPER to WallpaperInfoEndpoint(_wallpaperInfo),
+        ENDPOINT_CALENDAR to CalendarEventsEndpoint(_calendarEvents)
     )
 
     suspend fun handle(req: WebResourceRequest): WebResourceResponse?
@@ -138,5 +153,6 @@ class BridgeServer(
         const val ENDPOINT_APP_ICONS = "appicons"
         const val ENDPOINT_ICON_PACKS = "iconpacks"
         const val ENDPOINT_WALLPAPER = "wallpaper"
+        const val ENDPOINT_CALENDAR = "calendar"
     }
 }

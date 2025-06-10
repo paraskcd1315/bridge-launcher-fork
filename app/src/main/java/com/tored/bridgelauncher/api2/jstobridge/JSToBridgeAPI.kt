@@ -901,6 +901,13 @@ class JSToBridgeAPI(
 
     //endregion
 
+    // region calendar
+
+    @JavascriptInterface
+    fun getCalendarUrl() = getBridgeApiEndpointURL(BridgeServer.ENDPOINT_CALENDAR)
+
+    // endregion
+
 
     // region helpers
 

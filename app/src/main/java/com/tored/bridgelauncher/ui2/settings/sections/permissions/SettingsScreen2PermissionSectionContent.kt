@@ -45,6 +45,11 @@ fun SettingsScreen2PermissionSectionContent(
         ) == PackageManager.PERMISSION_GRANTED
     }
 
+    val calendarGranted = ContextCompat.checkSelfPermission(
+        context,
+        Manifest.permission.READ_CALENDAR
+    ) == PackageManager.PERMISSION_GRANTED
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -83,6 +88,20 @@ fun SettingsScreen2PermissionSectionContent(
                         context as Activity,
                         arrayOf(Manifest.permission.READ_PHONE_STATE),
                         1002
+                    )
+                }
+            )
+        }
+
+        if (!calendarGranted) {
+            Btn(
+                text = "Allow Calendar Access",
+                contentColor = MaterialTheme.colors.onSurface,
+                onClick = {
+                    ActivityCompat.requestPermissions(
+                        context as Activity,
+                        arrayOf(Manifest.permission.READ_CALENDAR),
+                        1004
                     )
                 }
             )
