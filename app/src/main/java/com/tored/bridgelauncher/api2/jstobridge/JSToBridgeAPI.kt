@@ -32,6 +32,7 @@ import com.tored.bridgelauncher.api2.shared.OverscrollEffectsStringOptions
 import com.tored.bridgelauncher.api2.shared.SystemBarAppearanceStringOptions
 import com.tored.bridgelauncher.api2.shared.SystemNightModeStringOptions
 import com.tored.bridgelauncher.services.battery.BatteryInfo
+import com.tored.bridgelauncher.services.contacts.ContactInfo
 import com.tored.bridgelauncher.services.displayshape.DisplayShapeHolder
 import com.tored.bridgelauncher.services.googlesearch.GoogleSearch
 import com.tored.bridgelauncher.services.location.LocationInfo
@@ -84,7 +85,8 @@ class JSToBridgeAPI(
     private val _wallpaperInfo: WallpaperInfo,
     private val _mediaPlayback: MediaPlayback,
     private val _locationInfo: LocationInfo,
-    private val _googleSearch: GoogleSearch
+    private val _googleSearch: GoogleSearch,
+    private val _contactInfo: ContactInfo
 )
 {
     private val _scope = CoroutineScope(Dispatchers.Main)
@@ -899,12 +901,35 @@ class JSToBridgeAPI(
         }
     }
 
-    //endregion
+    // endregion
 
     // region calendar
 
     @JavascriptInterface
     fun getCalendarUrl() = getBridgeApiEndpointURL(BridgeServer.ENDPOINT_CALENDAR)
+
+    // endregion
+
+    // region contacts
+
+    @JavascriptInterface
+    fun getContactsUrl() = getBridgeApiEndpointURL(BridgeServer.ENDPOINT_CONTACTS)
+
+    @JvmOverloads
+    @JavascriptInterface
+    fun requestContactCall(phoneNumber: String, showToastIfFailed: Boolean = true): Boolean {
+        return tryRunInHomescreenContext(showToastIfFailed) {
+            _contactInfo.callContact(phoneNumber)
+        }
+    }
+
+    @JvmOverloads
+    @JavascriptInterface
+    fun requestMessagingContact(phoneNumber: String, app: String, telegramUsername: String? = null, packageName: String? = null, showToastIfFailed: Boolean = true): Boolean {
+        return tryRunInHomescreenContext(showToastIfFailed) {
+            _contactInfo.messageViaApp(phoneNumber, app, telegramUsername, packageName)
+        }
+    }
 
     // endregion
 

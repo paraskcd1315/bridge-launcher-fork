@@ -50,6 +50,11 @@ fun SettingsScreen2PermissionSectionContent(
         Manifest.permission.READ_CALENDAR
     ) == PackageManager.PERMISSION_GRANTED
 
+    val contactsGranted = ContextCompat.checkSelfPermission(
+        context,
+        Manifest.permission.READ_CONTACTS
+    ) == PackageManager.PERMISSION_GRANTED
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -102,6 +107,20 @@ fun SettingsScreen2PermissionSectionContent(
                         context as Activity,
                         arrayOf(Manifest.permission.READ_CALENDAR),
                         1004
+                    )
+                }
+            )
+        }
+
+        if (!contactsGranted) {
+            Btn(
+                text = "Allow Contacts Access",
+                contentColor = MaterialTheme.colors.onSurface,
+                onClick = {
+                    ActivityCompat.requestPermissions(
+                        context as Activity,
+                        arrayOf(Manifest.permission.READ_CONTACTS),
+                        1005
                     )
                 }
             )

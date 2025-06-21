@@ -8,6 +8,7 @@ import com.tored.bridgelauncher.api2.server.endpoints.AppIconsEndpoint
 import com.tored.bridgelauncher.api2.server.endpoints.AppsEndpoint
 import com.tored.bridgelauncher.api2.server.endpoints.BridgeFileServer
 import com.tored.bridgelauncher.api2.server.endpoints.CalendarEventsEndpoint
+import com.tored.bridgelauncher.api2.server.endpoints.ContactInfoEndpoint
 import com.tored.bridgelauncher.api2.server.endpoints.IconPackContentEndpoint
 import com.tored.bridgelauncher.api2.server.endpoints.IconPacksEndpoint
 import com.tored.bridgelauncher.api2.server.endpoints.WallpaperInfoEndpoint
@@ -15,6 +16,7 @@ import com.tored.bridgelauncher.services.apps.InstalledAppsHolder
 import com.tored.bridgelauncher.services.apps.SerializableInstalledApp
 import com.tored.bridgelauncher.services.battery.BatteryInfo
 import com.tored.bridgelauncher.services.calendar.CalendarEvents
+import com.tored.bridgelauncher.services.contacts.ContactInfo
 import com.tored.bridgelauncher.services.iconpackcache.InstalledIconPacksHolder
 import com.tored.bridgelauncher.services.mobilesignal.MobileSignal
 import com.tored.bridgelauncher.services.settings2.BridgeSetting
@@ -62,12 +64,23 @@ data class CalendarEventSerializable(
     val allDay: Boolean?
 )
 
+@Serializable
+data class ContactInfoSerializable(
+    val id: String,
+    val name: String,
+    val phoneNumbers: List<String>,
+    val photoUri: String? = null,
+    val telegramUsername: String? = null,
+    val isFavorite: Boolean = false
+)
+
 class BridgeServer(
     private val _app: BridgeLauncherApplication,
     private val _apps: InstalledAppsHolder,
     private val _iconPacks: InstalledIconPacksHolder,
     private val _wallpaperInfo: WallpaperInfo,
-    private val _calendarEvents: CalendarEvents
+    private val _calendarEvents: CalendarEvents,
+    private val _contactInfo: ContactInfo
 )
 {
     private val _scope = CoroutineScope(Dispatchers.Main) + SupervisorJob()
@@ -88,7 +101,8 @@ class BridgeServer(
         ENDPOINT_ICON_PACKS to IconPacksEndpoint(_iconPacks),
         ENDPOINT_ICON_PACK_CONTENT to IconPackContentEndpoint(_iconPacks),
         ENDPOINT_WALLPAPER to WallpaperInfoEndpoint(_wallpaperInfo),
-        ENDPOINT_CALENDAR to CalendarEventsEndpoint(_calendarEvents)
+        ENDPOINT_CALENDAR to CalendarEventsEndpoint(_calendarEvents),
+        ENDPOINT_CONTACTS to ContactInfoEndpoint(_contactInfo)
     )
 
     suspend fun handle(req: WebResourceRequest): WebResourceResponse?
@@ -154,5 +168,6 @@ class BridgeServer(
         const val ENDPOINT_ICON_PACKS = "iconpacks"
         const val ENDPOINT_WALLPAPER = "wallpaper"
         const val ENDPOINT_CALENDAR = "calendar"
+        const val ENDPOINT_CONTACTS = "contacts"
     }
 }

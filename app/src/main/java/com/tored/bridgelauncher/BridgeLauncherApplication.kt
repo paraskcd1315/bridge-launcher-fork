@@ -18,6 +18,7 @@ import com.tored.bridgelauncher.services.BridgeServices
 import com.tored.bridgelauncher.services.apps.InstalledAppsHolder
 import com.tored.bridgelauncher.services.battery.BatteryInfo
 import com.tored.bridgelauncher.services.calendar.CalendarEvents
+import com.tored.bridgelauncher.services.contacts.ContactInfo
 import com.tored.bridgelauncher.services.devconsole.DevConsoleMessagesHolder
 import com.tored.bridgelauncher.services.displayshape.DisplayShapeHolder
 import com.tored.bridgelauncher.services.googlesearch.GoogleSearch
@@ -51,6 +52,7 @@ class BridgeLauncherApplication : Application()
     val notificationBadgesService: NotificationBadgesService
         get() = NotificationBadgesService.instance ?: error("Service not initialized")
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate()
     {
         super.onCreate()
@@ -80,6 +82,7 @@ class BridgeLauncherApplication : Application()
         val locationInfo = LocationInfo(this)
         val googleSearch = GoogleSearch(this)
         val calendarEvents = CalendarEvents(this)
+        val contactInfo = ContactInfo(this)
 
         val pm = packageManager
         val uiModeManager = getSystemService(UI_MODE_SERVICE) as UiModeManager
@@ -125,7 +128,8 @@ class BridgeLauncherApplication : Application()
             _wallpaperInfo = wallpaperInfo,
             _mediaPlayback = mediaPlayback,
             _locationInfo = locationInfo,
-            _googleSearch = googleSearch
+            _googleSearch = googleSearch,
+            _contactInfo = contactInfo
         )
 
         val bridgeServer = BridgeServer(
@@ -133,7 +137,8 @@ class BridgeLauncherApplication : Application()
             installedAppsHolder,
             _iconPacks = installedIconPacksHolder,
             _wallpaperInfo = wallpaperInfo,
-            _calendarEvents = calendarEvents
+            _calendarEvents = calendarEvents,
+            _contactInfo = contactInfo
         )
 
         val consoleMessagesHolder = DevConsoleMessagesHolder()
@@ -177,7 +182,8 @@ class BridgeLauncherApplication : Application()
             batteryStatusService = batteryInfo,
             wallpaperServices = wallpaperInfo,
             mediaPlayback = mediaPlayback,
-            locationInfoServices = locationInfo
+            locationInfoServices = locationInfo,
+            contactInfo = contactInfo
         )
     }
 
@@ -190,7 +196,12 @@ class BridgeLauncherApplication : Application()
             BridgeLauncherBroadcastReceiver.intentFilter,
             ContextCompat.RECEIVER_EXPORTED,
         )
-
+        try {
+            services.contactInfo.startup()
+        } catch (e: SecurityException) {
+            Log.e("ContactInfo", "Permission denied: ${e.message}")
+            // Aquí puedes dejar contactos vacíos, avisar a JS o simplemente loggear
+        }
         services.batteryStatusService.startup()
         services.iconPackCache.startup()
         services.installedIconPacksHolder.startup()

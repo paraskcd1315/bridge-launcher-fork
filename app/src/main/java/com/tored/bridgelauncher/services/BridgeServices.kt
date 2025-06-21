@@ -7,6 +7,7 @@ import com.tored.bridgelauncher.api2.jstobridge.JSToBridgeAPI
 import com.tored.bridgelauncher.api2.server.BridgeServer
 import com.tored.bridgelauncher.services.apps.InstalledAppsHolder
 import com.tored.bridgelauncher.services.battery.BatteryInfo
+import com.tored.bridgelauncher.services.contacts.ContactInfo
 import com.tored.bridgelauncher.services.devconsole.DevConsoleMessagesHolder
 import com.tored.bridgelauncher.services.displayshape.DisplayShapeHolder
 import com.tored.bridgelauncher.services.iconcache.IconCache
@@ -60,5 +61,7 @@ data class BridgeServices(
 
     val mediaPlayback: MediaPlayback,
 
-    val locationInfoServices: LocationInfo
+    val locationInfoServices: LocationInfo,
+
+    val contactInfo: ContactInfo
 )
